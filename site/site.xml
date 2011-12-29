@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="SMC Maven Eclipse Extension" url="http://foo.com">
+      Prime Mover Event Driven Simulation framework and tools
+   </description>
+   <feature url="features/com.salesforce.smc.feature.jar" id="com.salesforce.smc.feature" version="0.0.1.qualifier">
+      <category name="extension"/>
+   </feature>
+   <category-def name="extension" label="SMC Eclipse Integration">
+      <description>
+         Integration of the State Machine Compiler Maven Plugin Extension
+      </description>
+   </category-def>
+</site>

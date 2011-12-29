@@ -1,0 +1,87 @@
+
+	transient protected java.util.Stack<statemap.State> _stateStack;
+
+    /**
+     * Pushes the current state on top of the state stack and
+     * sets the current state to {@code state}.
+     * @param state The new current state.
+     * @exception NullPointerException
+     * if {@code state} is {@code null}.
+     */
+    public void pushState(statemap.State state)
+    {
+        if (_state == null)
+        {
+            throw (new NullPointerException());
+        }
+
+        if (getLog().isLoggable(Level.FINER))
+        {
+            getLog().finer(String.format("PUSH TO STATE   : %s [%s]",
+                                     state.getName(), _name));
+        }
+
+        if (_stateStack == null)
+        {
+            _stateStack = new java.util.Stack<statemap.State>();
+        }
+
+        _stateStack.push(_state);
+        _state = state;
+
+        return;
+    } // end of pushState(State)
+
+    /**
+     * Sets the previous state to the current state and pops
+     * the top state off the stack and places it into the
+     * current state.
+     * if the state stack is empty.
+     */
+    public void popState()
+    {
+        if (_stateStack == null ||
+            _stateStack.isEmpty() == true)
+        {
+            if (getLog().isLoggable(Level.FINER))
+            {
+                getLog().finer(
+                    "POPPING ON EMPTY STATE STACK.");
+            }
+
+            throw (new RuntimeException("Empty Stack"));
+        }
+        else
+        {
+            // The pop method removes the top element
+            // from the stack and returns it.
+            _state = _stateStack.pop();
+
+            if (_stateStack.isEmpty() == true)
+            {
+                _stateStack = null;
+            }
+
+            if (getLog().isLoggable(Level.FINER))
+            {
+                getLog().finer(String.format("POP TO STATE    : %s [%s]",
+                                      _state.getName(), _name));
+            }
+        }
+
+        return;
+    } // end of popState()
+
+    /**
+     * Empties the state stack.
+     */
+    public void emptyStateStack()
+    {
+        if (_stateStack != null)
+        {
+            _stateStack.clear();
+            _stateStack = null;
+        }
+
+        return;
+    } // end of emptyStateStack()

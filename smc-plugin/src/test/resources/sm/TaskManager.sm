@@ -1,0 +1,276 @@
+// -*- tab-width: 4; -*-
+
+%{
+//
+// The contents of this file are subject to the Mozilla Public
+// License Version 1.1 (the "License"); you may not use this file
+// except in compliance with the License. You may obtain a copy of
+// the License at http://www.mozilla.org/MPL/
+// 
+// Software distributed under the License is distributed on an "AS
+// IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+// implied. See the License for the specific language governing
+// rights and limitations under the License.
+// 
+// The Original Code is State Machine Compiler (SMC).
+// 
+// The Initial Developer of the Original Code is Charles W. Rapp.
+// Portions created by Charles W. Rapp are
+// Copyright (C) 2000 - 2003 Charles W. Rapp.
+// All Rights Reserved.
+// 
+// Contributor(s): 
+//
+// State Machine
+//  TaskManager
+//
+// Description
+//  The task manager is responsible for executing tasks. This
+//  state machine tracks whether the manager has any tasks to run
+//  and how long a task is executed.
+//
+// RCS ID
+// $Id: TaskManager.sm,v 1.6 2009/11/25 22:30:18 cwrapp Exp $
+//
+// CHANGE LOG
+// $Log: TaskManager.sm,v $
+// Revision 1.6  2009/11/25 22:30:18  cwrapp
+// Fixed problem between %fsmclass and sm file names.
+//
+// Revision 1.5  2005/05/28 13:51:24  cwrapp
+// Update Java examples 1 - 7.
+//
+// Revision 1.1  2005/01/16 17:45:43  charlesr
+// Added Default transition to IdleShutdown state.
+//
+// Revision 1.0  2003/12/14 20:14:34  charlesr
+// Initial revision
+//
+%}
+
+// Since this task manager does not have any tasks to
+// run, it is in the idle state.
+%start MainMap::Idle
+%class TaskManager
+%package smc_ex5
+%fsmclass TaskManagerFSM
+
+%map MainMap
+%%
+
+// Wait here for some work to do.
+Idle
+Entry
+{
+    sendMessage(4, "Idle. Looking for a task to run.");
+    checkTaskQueue();
+}
+{
+    // Start the highest priority task running and start the slice
+    // timer.
+    RunTask
+        RunningTask
+        {
+            startTask();
+        }
+
+    // There is now a task a run.
+    TaskCreated
+        RunningTask
+        {
+            startTask();
+        }
+
+    TaskUnblocked
+        RunningTask
+        {
+            startTask();
+        }
+
+    Shutdown
+        IdleShutdown
+        {
+            sendMessage(0, "Shutdown started.");
+            setTimer("ShutdownTimeout", 2000);
+        }
+
+    // It is possible for the task to complete before it
+    // receives the suspend request. When this happens, handle
+    // this in the same manner as above.
+    TaskDone
+      [ctxt.getRunnableTaskCount() > 0]
+        RunningTask
+        {
+            startTask();
+        }
+
+    TaskDone
+        nil
+        {
+            stopTimer("ReplyTimeout");
+        }
+}
+
+// A task has been started and is running.
+RunningTask
+Entry
+{
+    setTimer("Slice Timeout", 3000);
+}
+Exit
+{
+    stopTimer("Slice Timeout");
+}
+{
+    // The time slice is up. Suspend the task.
+    SliceTimeout
+        SuspendingTask
+        {
+            suspendTask();
+        }
+
+    // The task has been suspended. Find another task to run.
+    TaskSuspended
+        Idle
+        {}
+
+    // The task has been blocked. Find another task to run.
+    TaskBlocked
+        Idle
+        {}
+
+    // The task has been deleted. Find another task to run.
+    TaskDeleted
+        Idle
+        {}
+
+    // The task has completed its work. Find another task to run.
+    TaskDone
+        Idle
+        {}
+}
+
+// Wait here for the task to suspend.
+SuspendingTask
+Entry
+{
+    setTimer("Reply Timeout", 500);
+}
+Exit
+{
+    stopTimer("Reply Timeout");
+}
+{
+    TaskSuspended
+        Idle
+        {}
+
+    // Wait only so long for the task to reply.
+    ReplyTimeout
+        Idle
+        {}
+
+    // Just in case a task completes exactly at the same time
+    // as the run slice ends.
+    TaskDone
+        Idle
+        {}
+}
+
+// Wait here while the tasks report in.
+ShuttingDown
+{
+    // A task is reporting it has stopped. When all tasks are
+    // stopped, exit this application.
+    TaskStopped
+      [ctxt.getRunningTask() == null &&
+       ctxt.getRunnableTaskCount() == 0 &&
+       ctxt.getBlockedTaskCount() == 0]
+        ShutdownComplete
+        {
+            stopTimer("ShutdownTimeout");
+            sendMessage(0, "Shutdown completed.");
+            exitApplication();
+        }
+
+    // Another task has stopped but there are more.
+    TaskStopped
+        nil
+        {}
+
+    // Timed out waiting for the tasks to die. Clean up and
+    // exit anyway.
+    ShutdownTimeout
+        ShutdownComplete
+        {
+            sendMessage(0,
+                        "Timed out waiting for tasks to stop. Forcibly deleting tasks and exiting.");
+            deleteAllTasks();
+            exitApplication();
+        }
+
+    // Since we are shutting down, ignore task suspended
+    // messages.
+    TaskSuspended
+        nil
+        {}
+
+    // If another shutdown is seen, ignore it.
+    Shutdown
+        nil
+        {}
+}
+
+// The system was idle when the shutdown request occurred.
+// Wait for the shutdown timeout, then exit.
+IdleShutdown
+{
+    ShutdownTimeout
+        ShutdownComplete
+        {
+            sendMessage(0, "Shutdown completed.");
+            exitApplication();
+        }
+
+    // Ignore all further transitions.
+    Default
+        nil
+        {}
+}
+
+ShutdownComplete
+{
+    // Once this state is reached, don't do anything.
+    Shutdown
+        nil
+        {}
+
+    Default
+        nil
+        {}
+}
+
+Default
+{
+    // Tell all tasks to stop. Wait for them to reply but only
+    // so long. If they fail to reply, kill 'em anyway.
+    Shutdown
+        ShuttingDown
+        {
+            sendMessage(0,
+                        "Shutdown started. Stopping all tasks.");
+            stopAllTimers();
+            stopAllTasks();
+            setTimer("ShutdownTimeout", 5000);
+        }
+
+    // Ignore these events if already running a task.
+    TaskCreated
+        nil
+        {}
+
+    TaskUnblocked
+        nil
+        {}
+}
+%%

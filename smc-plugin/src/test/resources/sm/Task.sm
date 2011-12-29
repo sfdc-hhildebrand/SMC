@@ -1,0 +1,217 @@
+// -*- tab-width: 4; -*-
+
+%{
+//
+// The contents of this file are subject to the Mozilla Public
+// License Version 1.1 (the "License"); you may not use this file
+// except in compliance with the License. You may obtain a copy of
+// the License at http://www.mozilla.org/MPL/
+// 
+// Software distributed under the License is distributed on an "AS
+// IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+// implied. See the License for the specific language governing
+// rights and limitations under the License.
+// 
+// The Original Code is State Machine Compiler (SMC).
+// 
+// The Initial Developer of the Original Code is Charles W. Rapp.
+// Portions created by Charles W. Rapp are
+// Copyright (C) 2000 - 2003 Charles W. Rapp.
+// All Rights Reserved.
+// 
+// Contributor(s): 
+//
+// State Machine
+//  Task
+//
+// Description
+//  A task's sole responsiblity is to execute. This state machine
+//  is used to track whether the task is running, suspended,
+//  blocked or stopped.
+//
+// RCS ID
+// $Id: Task.sm,v 1.6 2009/11/25 22:30:18 cwrapp Exp $
+//
+// CHANGE LOG
+// $Log: Task.sm,v $
+// Revision 1.6  2009/11/25 22:30:18  cwrapp
+// Fixed problem between %fsmclass and sm file names.
+//
+// Revision 1.5  2005/05/28 13:51:24  cwrapp
+// Update Java examples 1 - 7.
+//
+// Revision 1.0  2003/12/14 20:12:55  charlesr
+// Initial revision
+//
+%}
+
+%start ExecuteMap::Suspended
+%class Task
+%package smc_ex5
+%fsmclass TaskFSM
+
+%map ExecuteMap
+%%
+// A task begins life in suspended animation.
+Suspended
+{
+    Start
+        Running
+        {
+            sendMessage(3, "Running.");
+            stateUpdate("Running");
+        }
+}
+
+// This task is now running.
+Running
+Entry
+{
+    setStartTime();
+    setRunTimer();
+}
+Exit
+{
+    setStopTime();
+    stopTimer("Done");
+}
+{
+    Suspend
+        Suspended
+        {
+            sendMessage(3, "Being suspended.");
+            stateUpdate("Suspended");
+            updateTaskMan("Task Suspended");
+            setSuspendTime();
+        }
+
+    Done
+        StoppedState
+        {
+            sendMessage(3, "Completed.");
+            stateUpdate("Done");
+            updateTaskMan("Task Done");
+            deregister();
+        }
+}
+
+Blocked
+{
+    Unblock
+        Suspended
+        {
+            sendMessage(3, "Unblocked.");
+        }
+
+    Block
+        nil
+        {}
+}
+
+Stopping
+{
+    Stopped
+        StoppedState
+        {
+            sendMessage(3, "Stopped.");
+            stateUpdate("Stopped");
+            updateTaskMan("Task Stopped");
+            deregister();
+        }
+
+    Delete
+        nil
+        {}
+}
+
+StoppedState
+{
+    // Now that the task is stopped, ignore
+    // requests to block or stop.
+    Block
+        nil
+        {}
+    Stop
+        nil
+        {}
+    Delete
+        nil
+        {}
+}
+
+Deleted
+{
+    Block
+        nil
+        {}
+
+    Stop
+        nil
+        {}
+
+    Delete
+        nil
+        {}
+
+    // Somehow if a task is deleted and then immediately
+    // recreated, then the newly recreated task  somehow
+    // winds up here. So we get a start, then start running
+    // again.
+    Start
+        Running
+        {
+            sendMessage(3, "Running.");
+            stateUpdate("Running");
+        }
+}
+
+Default
+{
+    // Do blocks, stops and deletes immediately.
+    Block
+        Blocked
+        {
+            sendMessage(3, "Blocked.");
+            stateUpdate("Blocked");
+            setSuspendTime();
+        }
+
+    Stop
+        Stopping
+        {
+            sendMessage(3, "Being stopped.");
+            setTimer("Stopped", 0);
+        }
+
+    Delete
+        Deleted
+        {
+            sendMessage(3, "Deleted.");
+            stateUpdate("Deleted");
+            updateTaskMan("Task Deleted");
+        }
+
+    // Ignore all other transitions unless in the
+    // proper state.
+    Start
+        nil
+        {}
+
+    Started
+        nil
+        {}
+
+    Suspend
+        nil
+        {}
+
+    Unblock
+        nil
+        {}
+
+    Done
+        nil
+        {}
+}
+
+%%
