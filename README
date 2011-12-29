@@ -1,0 +1,45 @@
+SMC is a State Machine Compiler.  This project provides a modified SMC runtime as well as a Maven plugin for generating FSMs in maven build.
+
+This project is licensed under the BSD 3-Clause License:
+	http://www.opensource.org/licenses/BSD-3-Clause
+	
+Ouroboros is built using Maven 3.x.  You can build the project by cd'ing into the top level directory and:
+
+	$ mvn clean install
+	
+To use the plugin, you need to include the following in your maven plugin configuration:
+
+			<plugin>
+				<groupId>com.salesforce.smc</groupId>
+				<artifactId>smc-plugin</artifactId>
+				<version>6.1.0-SNAPSHOT</version>
+				<executions>
+					<execution>
+						<id>generate</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<targetDirectory>target/generated-sources/sm</targetDirectory>
+							<docDirectory>doc</docDirectory>
+							<table>true</table>
+							<graph>true</graph>
+							<graphLevel>2</graphLevel>
+							<verbose>true</verbose>
+							<serialize>true</serialize>
+							<sync>true</sync>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+The configuration is documented in the plugin java doc (see com.salesforce.smc.Plugin in the smc-plugin module).  These parameters follow the original SMC generator arguments.
+
+Unlike the original SMC code generator, this plugin will generate multiple FSMs from multiple .sm files in the source direcctory.  The code generator will also place the generated code in the correct package directory, relative to the configured target directory.  A seperate documentation target directory is provided so you can separate out the runtime code generation from the generated documentation.
+
+The SMC runtime has also been altered.  The original FSM context had a debug flag and a stream to output debug information.  This modified runtime uses java.util.logging.  A seperate logger is used for each FSM context, and is a static variable in the generated context.  Debug level 1 corresponds to FINER and debug level 2 corresponds to FINEST.
+
+I have also removed the bean event support.  State push/pop support is now only generated when the declaration requires push/pop.
+
+Enjoy. 
