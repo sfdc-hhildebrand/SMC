@@ -26,12 +26,13 @@
 package com.salesforce.smc;
 
 import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
 import org.apache.maven.project.MavenProject;
 import org.junit.Test;
-import static org.mockito.Mockito.*;
 
 /**
  * 
@@ -39,6 +40,20 @@ import static org.mockito.Mockito.*;
  * 
  */
 public class TestPlugin {
+    static public boolean deleteDirectory(File path) {
+        if (path.exists()) {
+            File[] files = path.listFiles();
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file);
+                } else {
+                    file.delete();
+                }
+            }
+        }
+        return path.delete();
+    }
+
     @Test
     public void testGenerate() throws Exception {
         File tempDir = File.createTempFile("smc", "generated", new File("."));
@@ -89,19 +104,5 @@ public class TestPlugin {
         } finally {
             deleteDirectory(tempDir);
         }
-    }
-
-    static public boolean deleteDirectory(File path) {
-        if (path.exists()) {
-            File[] files = path.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                if (files[i].isDirectory()) {
-                    deleteDirectory(files[i]);
-                } else {
-                    files[i].delete();
-                }
-            }
-        }
-        return (path.delete());
     }
 }

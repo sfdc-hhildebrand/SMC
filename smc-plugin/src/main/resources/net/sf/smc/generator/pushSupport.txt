@@ -17,7 +17,7 @@
 
         if (getLog().isDebugEnabled())
         {
-            getLog().finer(String.format("PUSH TO STATE   : %s [%s]",
+            getLog().debug(String.format("PUSH TO STATE   : %s [%s]",
                                      state.getName(), _name));
         }
 
@@ -45,7 +45,7 @@
         {
             if (getLog().isDebugEnabled())
             {
-                getLog().finer(
+                getLog().debug(
                     "POPPING ON EMPTY STATE STACK.");
             }
 
@@ -64,7 +64,7 @@
 
             if (getLog().isDebugEnabled())
             {
-                getLog().finer(String.format("POP TO STATE    : %s [%s]",
+                getLog().debug(String.format("POP TO STATE    : %s [%s]",
                                       _state.getName(), _name));
             }
         }
