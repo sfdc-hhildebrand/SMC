@@ -140,7 +140,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println();
         }
 
-        _source.println("import java.util.logging.*;");
+        _source.println("import org.slf4j.*;");
         
         // Do user-specified imports now.
         for (String imp: fsm.getImports())
@@ -176,9 +176,9 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         }
 
         _source.println("{");
-        _source.print("private final static Logger log = Logger.getLogger(");
+        _source.print("private final static Logger log = LoggerFactory.getLogger(");
         _source.print(fsmClassName);
-        _source.println(".class.getCanonicalName());");
+        _source.println(".class);");
         _source.println("//---------------------------------------------------------------");
         _source.println("// Member methods.");
         _source.println("//");
@@ -553,10 +553,10 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.print(fsmClassName);
         _source.println(" context)");
         _source.println("        {");
-        _source.println("            if (log.isLoggable(Level.FINEST))");
+        _source.println("            if (log.isTraceEnabled())");
         _source.println("            {");
         _source.print(_indent);
-        _source.println("                log.finest(");
+        _source.println("                log.trace(");
         _source.println("                    \"TRANSITION   : Default [\" + context.getName() + \"]\");");
         _source.println("            }");
         _source.println(); 
@@ -1197,11 +1197,11 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
 
         // Output state exit.
         _source.print(_indent);
-        _source.println("    if (log.isLoggable(Level.FINEST))");
+        _source.println("    if (log.isTraceEnabled())");
         _source.print(_indent);
         _source.println("    {");
         _source.print(_indent);
-        _source.print("        log.finest(\"LEAVING STATE   : ");
+        _source.print("        log.trace(\"LEAVING STATE   : ");
         _source.print(mapName);
         _source.print('.');
         _source.print(stateName);
@@ -1422,11 +1422,11 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         // transition or a pop transition.
         if (transType == TransType.TRANS_POP || loopbackFlag == false) { 
             _source.print(_indent);
-            _source.println("    if (log.isLoggable(Level.FINEST))");
+            _source.println("    if (log.isTraceEnabled())");
             _source.print(_indent);
             _source.println("{");
             _source.print(_indent);
-            _source.print("        log.finest(\"BEFORE EXIT     : ");
+            _source.print("        log.trace(\"BEFORE EXIT     : ");
             _source.print(mapName);
             _source.print('.');
             _source.print(stateName);
@@ -1440,11 +1440,11 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
                 "(context.getState()).Exit(context);");
  
             _source.print(_indent);
-            _source.println("    if (log.isLoggable(Level.FINEST))");
+            _source.println("    if (log.isTraceEnabled())");
             _source.print(_indent);
             _source.println("{");
             _source.print(_indent);
-            _source.print("        log.finest(\"AFTER EXIT      : ");
+            _source.print("        log.trace(\"AFTER EXIT      : ");
             _source.print(mapName);
             _source.print('.');
             _source.print(stateName);
@@ -1470,11 +1470,11 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             }
 
             _source.print(_indent);
-            _source.println("if (log.isLoggable(Level.FINEST))");
+            _source.println("if (log.isTraceEnabled())");
             _source.print(_indent);
             _source.println("{");
             _source.print(_indent);
-            _source.print("    log.finest(\"ENTER TRANSITION: ");
+            _source.print("    log.trace(\"ENTER TRANSITION: ");
             _source.print(mapName);
             _source.print('.');
             _source.print(stateName);
@@ -1571,11 +1571,11 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _indent = indent3;
 
             _source.print(_indent);
-            _source.println("if (log.isLoggable(Level.FINEST))");
+            _source.println("if (log.isTraceEnabled())");
             _source.print(_indent);
             _source.println("{");
             _source.print(_indent);
-            _source.print("    log.finest(\"EXIT TRANSITION : ");
+            _source.print("    log.trace(\"EXIT TRANSITION : ");
             _source.print(mapName);
             _source.print('.');
             _source.print(stateName);
@@ -1657,11 +1657,11 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
 
             _source.println();
             _source.print(indent3);
-            _source.println("if (log.isLoggable(Level.FINEST))");
+            _source.println("if (log.isTraceEnabled())");
             _source.print(indent3);
             _source.println("{");
             _source.print(indent3);
-            _source.print("    log.finest(\"BEFORE ENTRY    : ");
+            _source.print("    log.trace(\"BEFORE ENTRY    : ");
             _source.print(mapName);
             _source.print('.');
             _source.print(stateName);
@@ -1676,11 +1676,11 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
 
             _source.println();
             _source.print(indent3);
-            _source.println("if (log.isLoggable(Level.FINEST))");
+            _source.println("if (log.isTraceEnabled())");
             _source.print(indent3);
             _source.println("{");
             _source.print(indent3);
-            _source.print("    log.finest(\"AFTER ENTRY     : ");
+            _source.print("    log.trace(\"AFTER ENTRY     : ");
             _source.print(mapName);
             _source.print('.');
             _source.print(stateName);

@@ -36,8 +36,8 @@ package statemap;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
 
 /**
  * Base class for all SMC-generated application context classes.
@@ -166,9 +166,9 @@ public abstract class FSMContext
      */
     public void setState(State state)
     {
-        if (getLog().isLoggable(Level.FINER))
+        if (getLog().isDebugEnabled())
         {
-            getLog().finer(String.format("ENTER STATE     : %s [%s]",
+            getLog().debug(String.format("ENTER STATE     : %s [%s]",
                                      state.getName(), _name));
         }
 
