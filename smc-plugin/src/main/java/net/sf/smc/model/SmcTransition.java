@@ -361,6 +361,31 @@ public final class SmcTransition
 
         return (retval);
     }
+    
+    /** 
+     * @return the transition signature.
+     */
+    public String signature()
+    {
+        StringBuffer retval = new StringBuffer(512);
+        String sep;
+        Iterator<SmcParameter> pit;
+
+        retval.append(_name);
+        retval.append("(");
+
+        for (pit = _parameters.iterator(), sep = "";
+             pit.hasNext() == true;
+             sep = ", ")
+        {
+            retval.append(sep);
+            retval.append(pit.next());
+        }
+
+        retval.append(")");
+
+        return(retval.toString());
+    }
 
 //---------------------------------------------------------------
 // Member data

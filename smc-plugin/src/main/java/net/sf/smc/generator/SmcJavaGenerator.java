@@ -1194,6 +1194,17 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         }
 
         _source.println();
+        
+        _source.print(_indent);
+        _source.println("    if (log.isTraceEnabled())");
+        _source.print(_indent);
+        _source.println("    {");
+        _source.print(_indent);
+        _source.print("        log.trace(\"TRANSITION   : ");
+        _source.print(transition.signature());
+        _source.println(" [\" + context.getName() + \"]\");");
+        _source.print(_indent);
+        _source.println("    }");
 
         // Output state exit.
         _source.print(_indent);
