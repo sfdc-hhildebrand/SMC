@@ -34,10 +34,8 @@
 
 package net.sf.smc.model;
 
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -384,6 +382,7 @@ public final class SmcGuard
     // Scope the state name. If the state is unscoped, then
     // return "<mapName>.<stateName>". If the state named
     // contains the scope string "::", replace that with a ".".
+    @SuppressWarnings("unused")
     private String _scopeStateName(final String stateName,
                                    final String mapName)
     {

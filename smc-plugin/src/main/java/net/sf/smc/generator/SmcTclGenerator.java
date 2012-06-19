@@ -34,10 +34,10 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -820,7 +820,6 @@ public final class SmcTclGenerator
     {
         SmcState state = transition.getState();
         SmcMap map = state.getMap();
-        String context = map.getFSM().getContext();
         String mapName = map.getName();
         String stateName = state.getClassName();
         String transName = transition.getName();
@@ -828,7 +827,6 @@ public final class SmcTclGenerator
             transition.getParameters();
         List<SmcGuard> guards = transition.getGuards();
         boolean nullCondition = false;
-        Iterator<SmcParameter> pit;
         Iterator<SmcGuard> git;
         SmcGuard guard;
 
@@ -963,7 +961,6 @@ public final class SmcTclGenerator
         SmcTransition transition = guard.getTransition();
         SmcState state = transition.getState();
         SmcMap map = state.getMap();
-        String context = map.getFSM().getContext();
         String mapName = map.getName();
         String stateName = state.getClassName();
         String transName = transition.getName();

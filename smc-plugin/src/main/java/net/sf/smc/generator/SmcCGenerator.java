@@ -34,10 +34,10 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -114,10 +114,7 @@ public final class SmcCGenerator
         String fsmClassName = fsm.getFsmClassName();
         String mapName;
         List<SmcTransition> transList;
-        String separator;
         List<SmcParameter> params;
-        String declaration;
-        int packageDepth = 0;
 
         _source.println("/*");
         _source.println(" * ex: set ro:");

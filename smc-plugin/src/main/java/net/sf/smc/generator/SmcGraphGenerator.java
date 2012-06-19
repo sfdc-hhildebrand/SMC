@@ -34,11 +34,11 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -465,7 +465,6 @@ public final class SmcGraphGenerator
         if (_graphLevel >= GRAPH_LEVEL_1)
         {
             List<SmcAction> actions;
-            Iterator<SmcAction> it;
             boolean empty = true;
 
             actions = state.getEntryActions();
@@ -821,7 +820,6 @@ public final class SmcGraphGenerator
             condition != null &&
             condition.length() > 0)
         {
-            String continueLine = "\\\\";
 
             _source.print("\\l\\[");
 

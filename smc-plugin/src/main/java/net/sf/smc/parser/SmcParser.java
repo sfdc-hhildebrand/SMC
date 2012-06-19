@@ -580,7 +580,6 @@ public final class SmcParser
 
     /* package */ void createState(String name, int lineNumber)
     {
-        SmcState retval;
 
         if (_stateInProgress != null)
         {
@@ -737,8 +736,6 @@ public final class SmcParser
         }
         else
         {
-            String name;
-            SmcTransition transition;
 
             // Check if this state already has a transition with
             // this name. If so, then reuse that object.
@@ -1529,7 +1526,7 @@ public final class SmcParser
         {
             Class<SmcParserContext> fsmClass =
                 SmcParserContext.class;
-            Class[] paramTypes = new Class[1];
+            Class<?>[] paramTypes = new Class[1];
 
             paramTypes[0] = SmcLexer.Token.class;
 

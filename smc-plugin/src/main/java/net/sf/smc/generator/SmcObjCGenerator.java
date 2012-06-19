@@ -34,10 +34,9 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
-import java.util.StringTokenizer;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -104,7 +103,6 @@ public final class SmcObjCGenerator
      */
     public void visit(SmcFSM fsm)
     {
-        String packageName = fsm.getPackage();
         String rawSource = fsm.getSource();
         String context = fsm.getContext();
         String fsmClassName = fsm.getFsmClassName();
@@ -118,8 +116,6 @@ public final class SmcObjCGenerator
         Iterator<SmcState> stateIt;
         SmcState state;
         Iterator<SmcParameter> pit;
-        String declaration;
-        int packageDepth = 0;
         int index;
 
         _source.println("/*");
@@ -784,6 +780,7 @@ public final class SmcObjCGenerator
         List<SmcGuard> guards = transition.getGuards();
         Iterator<SmcGuard> git;
         SmcGuard guard;
+        @SuppressWarnings("unused")
         String fqStateName;
 
         // Qualify the state name as well.

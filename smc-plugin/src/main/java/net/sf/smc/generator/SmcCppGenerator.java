@@ -34,10 +34,10 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -122,7 +122,6 @@ public final class SmcCppGenerator
         List<SmcParameter> params;
         Iterator<SmcMap> mapIt;
         Iterator<SmcState> stateIt;
-        String declaration;
         int packageDepth = 0;
         SmcMap map;
         SmcState state;
@@ -654,7 +653,6 @@ public final class SmcCppGenerator
         List<SmcGuard> guards = transition.getGuards();
         Iterator<SmcGuard> git;
         SmcGuard guard;
-        Iterator<SmcParameter> pit;
         String fqStateName;
 
         // Qualify the state name as well.

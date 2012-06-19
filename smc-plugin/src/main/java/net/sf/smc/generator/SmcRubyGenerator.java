@@ -38,11 +38,11 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -104,10 +104,7 @@ public final class SmcRubyGenerator
         String startState = fsm.getStartState();
         List<SmcMap> maps = fsm.getMaps();
         List<SmcTransition> transitions;
-        List<SmcParameter> params;
-        String transName;
         int packageDepth = 0;
-        int index;
 
         _source.println("# ex: set ro:");
         _source.println("# DO NOT EDIT.");
@@ -675,7 +672,6 @@ public final class SmcRubyGenerator
     {
         SmcState state = transition.getState();
         SmcMap map = state.getMap();
-        String packageName = map.getFSM().getPackage();
         String mapName = map.getName();
         String stateName = state.getClassName();
         String transName = transition.getName();
@@ -683,7 +679,6 @@ public final class SmcRubyGenerator
             transition.getParameters();
         List<SmcGuard> guards = transition.getGuards();
         boolean nullCondition = false;
-        Iterator<SmcParameter> pit;
         Iterator<SmcGuard> git;
         SmcGuard guard;
         String indent2;
@@ -789,7 +784,6 @@ public final class SmcRubyGenerator
         SmcState state = transition.getState();
         SmcMap map = state.getMap();
         String packageName = map.getFSM().getPackage();
-        String context = map.getFSM().getContext();
         String mapName = map.getName();
         String stateName = state.getClassName();
         String transName = transition.getName();
@@ -1009,9 +1003,6 @@ public final class SmcRubyGenerator
         // Dump out this transition's actions.
         if (actions.size() == 0)
         {
-            List<SmcAction> entryActions =
-                state.getEntryActions();
-            List<SmcAction> exitActions = state.getExitActions();
 
             if (condition.length() > 0)
             {

@@ -34,10 +34,10 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -1862,7 +1862,6 @@ public final class SmcCSharpGenerator
         {
             List<SmcParameter> parameters =
                 transition.getParameters();
-            String sep;
 
             _source.println("#if TRACE");
             _source.print(indent2);
@@ -1951,7 +1950,6 @@ public final class SmcCSharpGenerator
         {
             List<SmcParameter> parameters =
                 transition.getParameters();
-            String sep;
 
             _source.println("#if TRACE");
             _source.print(indent3);

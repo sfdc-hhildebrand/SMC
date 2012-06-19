@@ -38,10 +38,10 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -103,9 +103,7 @@ public final class SmcPerlGenerator
         String startState = fsm.getStartState();
         List<SmcMap> maps = fsm.getMaps();
         List<SmcTransition> transitions;
-        List<SmcParameter> params;
         String transName;
-        int index;
 
         _source.println("# ex: set ro:");
         _source.println("# DO NOT EDIT.");
@@ -652,7 +650,6 @@ public final class SmcPerlGenerator
             transition.getParameters();
         List<SmcGuard> guards = transition.getGuards();
         boolean nullCondition = false;
-        Iterator<SmcParameter> pit;
         Iterator<SmcGuard> git;
         SmcGuard guard;
 
@@ -1012,8 +1009,10 @@ public final class SmcPerlGenerator
         // Dump out this transition's actions.
         if (actions.isEmpty() == true)
         {
+            @SuppressWarnings("unused")
             List<SmcAction> entryActions =
                 state.getEntryActions();
+            @SuppressWarnings("unused")
             List<SmcAction> exitActions = state.getExitActions();
 
             if (condition.length() > 0)

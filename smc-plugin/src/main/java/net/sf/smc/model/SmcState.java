@@ -34,8 +34,6 @@
 
 package net.sf.smc.model;
 
-import java.io.PrintStream;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

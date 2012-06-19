@@ -34,13 +34,10 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
-import java.util.Iterator;
 import java.util.List;
-import net.sf.smc.model.SmcAction;
+
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcFSM;
-import net.sf.smc.model.SmcGuard;
 import net.sf.smc.model.SmcMap;
 import net.sf.smc.model.SmcParameter;
 import net.sf.smc.model.SmcState;

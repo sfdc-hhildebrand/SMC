@@ -45,10 +45,10 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -378,7 +378,6 @@ public final class SmcPhpGenerator
         String context = map.getFSM().getContext();
         String mapName = map.getName();
         List<SmcState> states = map.getStates();
-        boolean needPass = true;
 
         // Initialize the default transition list to all the
         // default state's transitions.
@@ -521,7 +520,6 @@ public final class SmcPhpGenerator
         String stateName = state.getClassName();
         List<SmcAction> actions;
         String indent2;
-        boolean needPass = true;
 
         // Declare the state class.
         _source.println();
@@ -538,7 +536,6 @@ public final class SmcPhpGenerator
         actions = state.getEntryActions();
         if (actions != null && actions.size() > 0)
         {
-            needPass = false;
 
             _source.println();
             _source.println("    public function Entry($fsm) {");
@@ -561,7 +558,6 @@ public final class SmcPhpGenerator
         actions = state.getExitActions();
         if (actions != null && actions.size() > 0)
         {
-            needPass = false;
 
             _source.println();
             _source.println("    public function Exit_($fsm) {");
@@ -677,7 +673,6 @@ public final class SmcPhpGenerator
             transition.getParameters();
         List<SmcGuard> guards = transition.getGuards();
         boolean nullCondition = false;
-        Iterator<SmcParameter> pit;
         Iterator<SmcGuard> git;
         SmcGuard guard;
 
@@ -786,7 +781,6 @@ public final class SmcPhpGenerator
         SmcTransition transition = guard.getTransition();
         SmcState state = transition.getState();
         SmcMap map = state.getMap();
-        String context = map.getFSM().getContext();
         String mapName = map.getName();
         String stateName = state.getClassName();
         String transName = transition.getName();

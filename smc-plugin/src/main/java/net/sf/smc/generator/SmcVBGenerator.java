@@ -34,10 +34,10 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -102,7 +102,6 @@ public final class SmcVBGenerator
         List<SmcTransition> transitions;
         List<SmcParameter> params;
         Iterator<SmcParameter> pit;
-        String transName;
         String vbState;
         String separator;
         int index;
@@ -1301,7 +1300,6 @@ public final class SmcVBGenerator
             transition.getParameters();
         List<SmcGuard> guards = transition.getGuards();
         boolean nullCondition = false;
-        Iterator<SmcParameter> pit;
         Iterator<SmcGuard> git;
         SmcGuard guard;
 
@@ -1431,8 +1429,6 @@ public final class SmcVBGenerator
         boolean loopbackFlag = false;
         String indent1;
         String indent2;
-        String indent3;
-        String indent4;
         String endStateName = guard.getEndState();
         String fqEndStateName = "";
         String pushStateName = guard.getPushState();

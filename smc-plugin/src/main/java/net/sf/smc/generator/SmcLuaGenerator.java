@@ -36,11 +36,10 @@
 
 package net.sf.smc.generator;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.StringTokenizer;
+
 import net.sf.smc.model.SmcAction;
 import net.sf.smc.model.SmcElement;
 import net.sf.smc.model.SmcElement.TransType;
@@ -95,7 +94,6 @@ public final class SmcLuaGenerator
      */
     public void visit(SmcFSM fsm)
     {
-        String packageName = fsm.getPackage();
         String context = fsm.getContext();
         String fsmClassName = fsm.getFsmClassName();
         String rawSource = fsm.getSource();
@@ -106,7 +104,6 @@ public final class SmcLuaGenerator
         List<SmcParameter> params;
         String mapName;
         String transName;
-        int packageDepth = 0;
         int index;
 
         _source.println("-- ex: set ro:");
@@ -636,7 +633,6 @@ public final class SmcLuaGenerator
     {
         SmcState state = transition.getState();
         SmcMap map = state.getMap();
-        String packageName = map.getFSM().getPackage();
         String mapName = map.getName();
         String stateName = state.getClassName();
         String transName = transition.getName();
@@ -644,7 +640,6 @@ public final class SmcLuaGenerator
             transition.getParameters();
         List<SmcGuard> guards = transition.getGuards();
         boolean nullCondition = false;
-        Iterator<SmcParameter> pit;
         Iterator<SmcGuard> git;
         SmcGuard guard;
         String indent2;
@@ -760,7 +755,6 @@ public final class SmcLuaGenerator
         SmcState state = transition.getState();
         SmcMap map = state.getMap();
         String packageName = map.getFSM().getPackage();
-        String context = map.getFSM().getContext();
         String mapName = map.getName();
         String stateName = state.getClassName();
         String transName = transition.getName();
