@@ -11,32 +11,11 @@
 	<modules>
 		<module>smc-plugin</module>
 		<module>smc-runtime</module>
-		<module>smc-extension</module>
-		<module>feature</module>
-		<module>site</module>
 	</modules>
 
 	<properties>
-		<tycho-version>0.13.0</tycho-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-
-	<repositories>
-		<repository>
-			<id>rso</id>
-			<url>http://repository.sonatype.org/content/groups/sonatype-public-grid</url>
-		</repository>
-		<repository>
-			<id>helios</id>
-			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/indigo</url>
-		</repository>
-		<repository>
-			<id>m2e</id>
-			<layout>p2</layout>
-			<url>https://repository.sonatype.org/content/repositories/forge-sites/m2e/1.1.0/N/LATEST/</url>
-		</repository>
-	</repositories>
 	
 	
     <build>
