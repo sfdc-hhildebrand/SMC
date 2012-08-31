@@ -1,0 +1,45 @@
+
+	protected void ${transition.name}( ${map.FSM.fsmClassName} context
+	<#list transition.parameters as parameter>
+		, ${param.type} ${param.name}
+	</#list>
+	)
+    	{
+    <#if transition.hasCtxtReference>
+    		ctxt = context.getOwner();
+    </#if>		
+			if (log.isTraceEnabled())
+			{
+        		log.trace("TRANSITION   : (${transition.signature})[${context.name}]");
+		        log.trace("LEAVING STATE   : ${map.name}.${state.name}[${context.name}]");
+        	}
+
+
+	<#list transition.guards as guard>
+		<#include "SMCJavaTemplate-Guard.fmtl">
+	</#if>
+        
+
+        // If all guards have a condition, then create a final
+        // "else" clause which passes control to the default
+        // transition. Pass all arguments into the default
+        // transition.
+	<#if transition.guards.count > 0 and !transition.hasGuardless)
+
+		<#if transition.guards.count==1>
+			}
+        </#if>
+
+        else
+        {
+
+            super.${transition.name}(context
+        <#list transition.parameters as param>
+        		, ${param.name}
+        </#list>
+			);
+        }
+	</#if>
+
+	return;
+}

@@ -47,48 +47,17 @@
 
 package net.sf.smc;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.reflect.Constructor;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-
-import net.sf.smc.generator.SmcCGenerator;
-import net.sf.smc.generator.SmcCSharpGenerator;
-import net.sf.smc.generator.SmcCodeGenerator;
-import net.sf.smc.generator.SmcCppGenerator;
-import net.sf.smc.generator.SmcGraphGenerator;
-import net.sf.smc.generator.SmcGroovyGenerator;
-import net.sf.smc.generator.SmcHeaderCGenerator;
-import net.sf.smc.generator.SmcHeaderGenerator;
-import net.sf.smc.generator.SmcHeaderObjCGenerator;
-import net.sf.smc.generator.SmcJSGenerator;
-import net.sf.smc.generator.SmcJavaGenerator;
-import net.sf.smc.generator.SmcLuaGenerator;
-import net.sf.smc.generator.SmcObjCGenerator;
-import net.sf.smc.generator.SmcOptions;
-import net.sf.smc.generator.SmcPerlGenerator;
-import net.sf.smc.generator.SmcPhpGenerator;
-import net.sf.smc.generator.SmcPythonGenerator;
-import net.sf.smc.generator.SmcRubyGenerator;
-import net.sf.smc.generator.SmcScalaGenerator;
-import net.sf.smc.generator.SmcTableGenerator;
-import net.sf.smc.generator.SmcTclGenerator;
-import net.sf.smc.generator.SmcVBGenerator;
+import net.sf.smc.generator.*;
 import net.sf.smc.model.SmcFSM;
 import net.sf.smc.parser.SmcMessage;
 import net.sf.smc.parser.SmcParser;
 import net.sf.smc.parser.SmcParser.TargetLanguage;
+
+import java.io.*;
+import java.lang.reflect.Constructor;
+import java.text.ParseException;
+import java.util.*;
+import java.util.regex.Matcher;
 
 /**
  * Main class for the state machine compiler application.
@@ -142,6 +111,8 @@ public final class Smc
         _suffix = null;
         _hsuffix = null;
         _accessLevel = null;
+	    _templateName = null;
+		_templateSuffix=null;
 
         // Process the command line.
         if (parseArgs(args) == false)
@@ -491,6 +462,60 @@ public final class Smc
                     _hsuffix = args[i+1];
                     argsConsumed = 2;
                 }
+            }
+            else if (args[i].startsWith("-ts") == true)
+            {
+	            // -tsuffix should be followed by a suffix.
+	            if ((i + 1) == args.length ||
+			                args[i+1].startsWith("-") == true)
+	            {
+		            retcode = false;
+		            _errorMsg =
+				            TEMPLATE_SUFFIX_FLAG +
+						            " not followed by a value";
+	            }
+	            else if (_supportsOption(
+			                                    TEMPLATE_SUFFIX_FLAG) == false)
+	            {
+		            retcode = false;
+		            _errorMsg =
+				            _targetLanguage.name() +
+						            " does not support " +
+						            TEMPLATE_SUFFIX_FLAG +
+						            ".";
+	            }
+	            else
+	            {
+		            _templateSuffix = args[i+1];
+		            argsConsumed = 2;
+	            }
+            }
+            else if (args[i].startsWith("-template") == true)
+            {
+	            // -template should be followed by a suffix.
+	            if ((i + 1) == args.length ||
+			                args[i+1].startsWith("-") == true)
+	            {
+		            retcode = false;
+		            _errorMsg =
+				            TEMPLATE_NAME_FLAG +
+						            " not followed by a value";
+	            }
+	            else if (_supportsOption(
+			                                    TEMPLATE_NAME_FLAG) == false)
+	            {
+		            retcode = false;
+		            _errorMsg =
+				            _targetLanguage.name() +
+						            " does not support " +
+						            TEMPLATE_NAME_FLAG +
+						            ".";
+	            }
+	            else
+	            {
+		            _templateName = args[i+1];
+		            argsConsumed = 2;
+	            }
             }
             else if (args[i].startsWith("-ca") == true)
             {
@@ -1082,13 +1107,15 @@ public final class Smc
         stream.print(" [-cast cast_type]");
         stream.print(" [-d directory]");
         stream.print(" [-headerd directory]");
-        stream.print(" [-hsuffix suffix]");
-        stream.print(" [-glevel int]");
+	    stream.print(" [-hsuffix suffix]");
+	    stream.print(" [-template template]");
+	    stream.print(" [-tsuffix suffix]");
+	    stream.print(" [-glevel int]");
         stream.print(
             " {-c | -c++ | -csharp | -graph | -groovy | -java | -js ");
         stream.print(
             "-lua | -objc | -perl | -php | -python | -ruby | ");
-        stream.print("-scala | -table |-tcl | -vb}");
+        stream.print("-scala | -table |-tcl | -vb | -fm }");
         stream.println(" statemap_file");
         stream.println("    where:");
         stream.println(
@@ -1173,8 +1200,13 @@ public final class Smc
         stream.println("\t-scala    Generate Scala code");
         stream.println("\t-table    Generate HTML table code");
         stream.println("\t-tcl      Generate [incr Tcl] code");
-        stream.println("\t-vb       Generate VB.Net code");
-        stream.println();
+	    stream.println("\t-vb       Generate VB.Net code");
+	    stream.println("\t-fm       Use FreeMarker template");
+	    stream.println(
+			                  "\t\t-template  <name> use this template name");
+	    stream.println(
+			                  "\t-tsuffix   <suffix> use this suffix on generated code");
+	    stream.println();
         stream.println(
             "    Note: statemap_file must end in \".sm\"");
         stream.print(
@@ -1278,7 +1310,9 @@ public final class Smc
                                  _reflection,
                                  _sync,
                                  _generic,
-                                 _accessLevel);
+                                 _accessLevel,
+		                                _templateName,
+		                                _templateSuffix);
 
         // Create the header file name and generator -
         // if the language uses a header file.
@@ -1637,6 +1671,9 @@ public final class Smc
     // levels.
     private static Map<Language, List<String>> _accessMap;
 
+	private static String _templateName;
+	private static String _templateSuffix;
+
     //-----------------------------------------------------------
     // Constants.
     //
@@ -1670,8 +1707,10 @@ public final class Smc
     private static final String VERBOSE_FLAG = "-verbose";
     private static final String VERSION_FLAG = "-version";
     private static final String VVERBOSE_FLAG = "-vverbose";
+	private static final String TEMPLATE_SUFFIX_FLAG = "-tsuffix";
+	private static final String TEMPLATE_NAME_FLAG = "-template";
 
-    private static final String PACKAGE_LEVEL = "package";
+	private static final String PACKAGE_LEVEL = "package";
 
     static
     {
@@ -1802,8 +1841,15 @@ public final class Smc
                 "JavaScript",
                 SmcJSGenerator.class,
                 null);
+	    _languages[TargetLanguage.FREEMARKER.ordinal()] =
+			    new Language(
+					                TargetLanguage.FREEMARKER,
+					                "-fm",
+					                "FreeMarker",
+					                SmcFreeMarkerGenerator.class,
+					                null);
 
-        List<Language> languages = new ArrayList<Language>();
+	    List<Language> languages = new ArrayList<Language>();
 
         _optionMap = new HashMap<String, List<Language>>();
 
@@ -1852,22 +1898,25 @@ public final class Smc
 
         // Set the options supported by less than all langugages.
         languages = new ArrayList<Language>();
-        languages.add(_languages[TargetLanguage.C_PLUS_PLUS.ordinal()]);
-        _optionMap.put(CAST_FLAG, languages);
+	    languages.add(_languages[TargetLanguage.C_PLUS_PLUS.ordinal()]);
+	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
+	    _optionMap.put(CAST_FLAG, languages);
         _optionMap.put(NO_EXCEPTIONS_FLAG, languages);
         _optionMap.put(NO_STREAMS_FLAG, languages);
 
         // The -access option.
         languages = new ArrayList<Language>();
         languages.add(_languages[TargetLanguage.JAVA.ordinal()]);
-        _optionMap.put(ACCESS_FLAG, languages);
+	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
+	    _optionMap.put(ACCESS_FLAG, languages);
 
         // Languages using a header file.
         languages = new ArrayList<Language>();
         languages.add(_languages[TargetLanguage.C_PLUS_PLUS.ordinal()]);
         languages.add(_languages[TargetLanguage.C.ordinal()]);
         languages.add(_languages[TargetLanguage.OBJECTIVE_C.ordinal()]);
-        _optionMap.put(HEADER_FLAG, languages);
+	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
+	    _optionMap.put(HEADER_FLAG, languages);
         _optionMap.put(HEADER_SUFFIX_FLAG, languages);
 
         // Languages supporting thread synchronization.
@@ -1877,7 +1926,8 @@ public final class Smc
         languages.add(_languages[TargetLanguage.VB.ordinal()]);
         languages.add(_languages[TargetLanguage.GROOVY.ordinal()]);
         languages.add(_languages[TargetLanguage.SCALA.ordinal()]);
-        _optionMap.put(SYNC_FLAG, languages);
+	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
+	    _optionMap.put(SYNC_FLAG, languages);
 
         // Languages supporting reflection.
         languages = new ArrayList<Language>();
@@ -1892,7 +1942,8 @@ public final class Smc
         languages.add(_languages[TargetLanguage.RUBY.ordinal()]);
         languages.add(_languages[TargetLanguage.GROOVY.ordinal()]);
         languages.add(_languages[TargetLanguage.SCALA.ordinal()]);
-        _optionMap.put(REFLECT_FLAG, languages);
+	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
+	    _optionMap.put(REFLECT_FLAG, languages);
 
         // Languages supporting serialization.
         languages = new ArrayList<Language>();
@@ -1903,21 +1954,29 @@ public final class Smc
         languages.add(_languages[TargetLanguage.C_PLUS_PLUS.ordinal()]);
         languages.add(_languages[TargetLanguage.GROOVY.ordinal()]);
         languages.add(_languages[TargetLanguage.SCALA.ordinal()]);
-        _optionMap.put(SERIAL_FLAG, languages);
+	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
+	    _optionMap.put(SERIAL_FLAG, languages);
 
         // The -glevel option.
         languages = new ArrayList<Language>();
         languages.add(_languages[TargetLanguage.GRAPH.ordinal()]);
-        _optionMap.put(GLEVEL_FLAG, languages);
+	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
+	    _optionMap.put(GLEVEL_FLAG, languages);
 
         // The -generic option.
         languages = new ArrayList<Language>();
         languages.add(_languages[TargetLanguage.C_SHARP.ordinal()]);
         languages.add(_languages[TargetLanguage.JAVA.ordinal()]);
         languages.add(_languages[TargetLanguage.VB.ordinal()]);
-        _optionMap.put(GENERIC_FLAG, languages);
+	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
+	    _optionMap.put(GENERIC_FLAG, languages);
 
-        // Define the allowed access level keywords for each language
+	    // The template based options.
+	    languages = new ArrayList<Language>();
+	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
+	    _optionMap.put(TEMPLATE_SUFFIX_FLAG, languages);
+	    _optionMap.put(TEMPLATE_NAME_FLAG, languages);
+	    // Define the allowed access level keywords for each language
         // which supports the -access option.
         List<String> accessLevels;
 
@@ -1929,6 +1988,8 @@ public final class Smc
         accessLevels.add("private");
         _accessMap.put(
             _languages[TargetLanguage.JAVA.ordinal()], accessLevels);
+	    _accessMap.put(
+			                  _languages[TargetLanguage.FREEMARKER.ordinal()], accessLevels);
     } // end of static
 } // end of class Smc
 

@@ -1396,9 +1396,12 @@ public final class SmcParser
         /**
          * JavaScript
          */
-        JS ("{0}_sm");
+        JS ("{0}_sm"),
 
-    //-----------------------------------------------------------
+	    FREEMARKER ("{0}_sm");
+
+
+	    //-----------------------------------------------------------
     // Member methods.
     //
 
@@ -1432,10 +1435,10 @@ public final class SmcParser
     } // end of enum TargetLanguage
 
     /**
-     * SMC currently supports 17 different target languages plus
+     * SMC currently supports 18 different target languages plus
      * one for an error code.
      */
-    public static final int LANGUAGE_COUNT = 18;
+    public static final int LANGUAGE_COUNT = 19;
 
 //---------------------------------------------------------------
 // Member Data

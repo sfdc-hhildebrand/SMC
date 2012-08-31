@@ -33,11 +33,13 @@
 
 package statemap;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.PrintStream;
 import java.io.Serializable;
-
-import org.slf4j.Logger;
+import java.util.EmptyStackException;
 
 /**
  * Base class for all SMC-generated application context classes.
@@ -66,9 +68,14 @@ public abstract class FSMContext
      */
     protected FSMContext(State initState)
     {
+        _name = "FSMContext";
         _state = initState;
         _transition = "";
         _previousState = null;
+        _stateStack = null;
+        _debugFlag = false;
+        _debugStream = System.err;
+        _listeners = new PropertyChangeSupport(this);
     } // end of FSMContext(State)
 
     //
@@ -99,6 +106,9 @@ public abstract class FSMContext
     {
         istream.defaultReadObject();
 
+        // Create an empty listeners list.
+        _listeners = new PropertyChangeSupport(this);
+
         return;
     } // end of readObject(ObjectInputStream)
 
@@ -111,10 +121,34 @@ public abstract class FSMContext
     //
 
     /**
-     * Returns the logger
-     * @return the Logger
+     * Returns the FSM name.
+     * @return the FSM name.
      */
-    abstract public Logger getLog();
+    public String getName()
+    {
+        return (_name);
+    } // end of getName()
+
+    /**
+     * When debug is set to {@code true}, the state machine
+     * will print messages to the console.
+     * @return {@code true} if debug output is generated.
+     */
+    public boolean getDebugFlag()
+    {
+        return(_debugFlag && _debugStream != null);
+    } // end of getDebugFlag()
+
+    /**
+     * Writes the debug output to this stream.
+     * @return the debug output stream.
+     */
+    public PrintStream getDebugStream()
+    {
+        return (_debugStream == null ?
+                System.err :
+                _debugStream);
+    } // end of getDebugStream()
 
     /**
      * Returns {@code true} if this FSM is in a transition and
@@ -161,15 +195,53 @@ public abstract class FSMContext
     //
 
     /**
+     * Sets the FSM name.
+     * @param name The finite state machine name.
+     */
+    public void setName(String name)
+    {
+        if (name != null &&
+            name.length() > 0 &&
+            name.equals(_name) == false)
+        {
+            _name = name;
+        }
+
+        return;
+    } // end of setName(String)
+
+    /**
+     * Turns debug output on if {@code flag} is {@code true} and
+     * off if {@code flag} is {@code false}.
+     * @param flag {@code true} to turn debuggin on and
+     * {@code false} to turn debugging off.
+     */
+    public void setDebugFlag(boolean flag)
+    {
+        _debugFlag = flag;
+        return;
+    } // end of setDebugFlag(boolean)
+
+    /**
+     * Sets the debug output stream to the given value.
+     * @param stream The debug output stream.
+     */
+    public void setDebugStream(PrintStream stream)
+    {
+        _debugStream = stream;
+        return;
+    } // end of setDebugStream(PrintStream)
+
+    /**
      * Sets the current state to the given value.
      * @param state The current state.
      */
     public void setState(State state)
     {
-        if (getLog().isDebugEnabled())
+        if (getDebugFlag() == true)
         {
-            getLog().debug(String.format("ENTER STATE     : %s [%s]",
-                                     state.getName(), _name));
+            getDebugStream().println("ENTER STATE     : " +
+                                     state.getName());
         }
 
         // clearState() is not called when a transition has
@@ -182,6 +254,11 @@ public abstract class FSMContext
         }
 
         _state = state;
+
+        // Inform any and all listeners about this state
+        // change.
+        _listeners.firePropertyChange(
+            STATE_PROPERTY, _previousState, _state);
 
         return;
     } // end of setState(State)
@@ -198,16 +275,104 @@ public abstract class FSMContext
         return;
     } // end of clearState()
 
-    public void pushState(State state) {
-        throw new UnsupportedOperationException("Push support has not been generated for this FSM Context");
+    /**
+     * Pushes the current state on top of the state stack and
+     * sets the current state to {@code state}.
+     * @param state The new current state.
+     * @exception NullPointerException
+     * if {@code state} is {@code null}.
+     */
+    public void pushState(State state)
+    {
+        if (_state == null)
+        {
+            throw (new NullPointerException());
         }
 
-    public void popState() {
-        throw new UnsupportedOperationException("Push support has not been generated for this FSM Context");
+        if (getDebugFlag() == true)
+        {
+            getDebugStream().println("PUSH TO STATE   : " +
+                                     state.getName());
         }
-    public void emptyStateStack() {
-        throw new UnsupportedOperationException("Push support has not been generated for this FSM Context");
+
+        if (_stateStack == null)
+        {
+            _stateStack = new java.util.Stack<State>();
         }
+
+        _previousState = _state;
+        _stateStack.push(_state);
+        _state = state;
+
+        // Inform any and all listeners about this state
+        // change.
+        _listeners.firePropertyChange(
+            STATE_PROPERTY, _previousState, _state);
+
+        return;
+    } // end of pushState(State)
+
+    /**
+     * Sets the previous state to the current state and pops
+     * the top state off the stack and places it into the
+     * current state.
+     * @exception EmptyStackException
+     * if the state stack is empty.
+     */
+    public void popState()
+        throws EmptyStackException
+    {
+        if (_stateStack == null ||
+            _stateStack.isEmpty() == true)
+        {
+            if (getDebugFlag() == true)
+            {
+                getDebugStream().println(
+                    "POPPING ON EMPTY STATE STACK.");
+            }
+
+            throw (new EmptyStackException());
+        }
+        else
+        {
+            // The pop method removes the top element
+            // from the stack and returns it.
+            _previousState = _state;
+            _state = _stateStack.pop();
+
+            if (_stateStack.isEmpty() == true)
+            {
+                _stateStack = null;
+            }
+
+            if (getDebugFlag() == true)
+            {
+                getDebugStream().println("POP TO STATE    : " +
+                                      _state.getName());
+            }
+
+            // Inform any and all listeners about this state
+            // change.
+            _listeners.firePropertyChange(
+                STATE_PROPERTY, _previousState, _state);
+        }
+
+        return;
+    } // end of popState()
+
+    /**
+     * Empties the state stack.
+     */
+    public void emptyStateStack()
+    {
+        if (_stateStack != null)
+        {
+            _stateStack.clear();
+            _stateStack = null;
+        }
+
+        return;
+    } // end of emptyStateStack()
 
     //
     // end of Set methods.
@@ -218,18 +383,40 @@ public abstract class FSMContext
     // Note: if a transition does not cause a state change,
     // then no state change event is fired.
 
-    @Override
-    public String toString() {
-        return String.format("%s[name=%s, current=%s, previous=%s, transition=%s]", getClass().getName(), _name, _state, _previousState, _transition);
+    /**
+     * Adds a PropertyChangeListener to the listener list. The
+     * listener is registered for state property changes only.
+     * The same listener may be added more than once. For each
+     * state change, the listener will be invoked the number of
+     * times it was added. If {@code listener} is {@code null},
+     * no exception is thrown and no action is taken.
+     * @param listener The PropertyChangeListener to be added.
+     */
+    public void
+        addStateChangeListener(PropertyChangeListener listener)
+    {
+        _listeners.addPropertyChangeListener(
+            STATE_PROPERTY, listener);
+        return;
     }
-    
-    public String getName() {
-        return _name;
-    }
-    
-    public void setName(String name) {
-        _name = name;
-    }
+
+    /**
+     * Removes a PropertyChangeListener for the state change
+     * property. If {@code listener} was added more than once
+     * to the same event source, it will be notified one less
+     * time after being removed. If {@code listener} is
+     * {@code null} or was never added, no exception is thrown
+     * and no action is taken.
+     * @param listener The PropertyChangeListener to be removed.
+     */
+    public void
+        removeStateChangeListener(
+            PropertyChangeListener listener)
+    {
+        _listeners.removePropertyChangeListener(
+            STATE_PROPERTY, listener);
+        return;
+    } // end of removeStateChangeListener(PropertyChangeListener)
 
 //---------------------------------------------------------------
 // Member data
@@ -258,10 +445,31 @@ public abstract class FSMContext
      */
     transient protected State _previousState;
 
+    /**
+     * This stack is used to store the current state when a push
+     * transition is taken.
+     */
+    transient protected java.util.Stack<State> _stateStack;
+
+    /**
+     * When this flag is set to {@code true}, this class will
+     * print out debug messages.
+     */
+    transient protected boolean _debugFlag;
+
+    /**
+     * Write debug output to this stream.
+     */
+    transient protected PrintStream _debugStream;
+
+    // Stores the property change listeners here.
+    transient private PropertyChangeSupport _listeners;
+
     //-----------------------------------------------------------
     // Constants.
     //
     private static final long serialVersionUID = 0x060000L;
+    private static final String STATE_PROPERTY = "State";
 } // end of class FSMContext
 
 //

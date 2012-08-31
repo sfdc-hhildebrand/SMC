@@ -1,0 +1,123 @@
+List<SmcTransition> definedDefaultTransitions;
+        SmcState defaultState = map.getDefaultState();
+        String context = map.getFSM().getContext();
+        String mapName = map.getName();
+        List<SmcState> states = map.getStates();
+
+        // Initialize the default transition list to all the
+        // default state's transitions.
+        if (defaultState != null)
+        {
+            definedDefaultTransitions =
+                defaultState.getTransitions();
+        }
+        else
+        {
+            definedDefaultTransitions =
+                new ArrayList<SmcTransition>();
+        }
+
+${accessLevel} static abstract class ${map.name}
+{
+     //-----------------------------------------------------------
+     // Member methods.
+     //
+     //-----------------------------------------------------------
+         // Member data.
+         //
+
+        //-------------------------------------------------------
+        // Constants.
+        //
+
+<#list map.states as state>
+        public static final ${map.name}_${state.className} ${state.getInstanceName} =
+        	new ${map.name}_${state.className}("${map.name}.${state.className}",map.nextStateId()),
+<#/list>
+
+        // Create a default state as well.
+        @SuppressWarnings("unused")
+        private static final ${map.name}_Default Default = new ${map.name}_Default("${map.name}.Default",-1);
+}
+
+
+   @SuppressWarnings("serial")
+   protected static class 
+        ${map.name}_Default  extends ${context}State
+    	{
+            //-----------------------------------------------------------
+            // Member methods.
+            //
+
+
+        // If -reflect was specified, then output the
+        // getTransitions() abstract method.
+<#if reflectFlag}
+	<#if genericFlag}
+		public Map<String, Integer> getTransitions() {            return (_transitions); }
+    <#else>
+		public Map getTransitions() {            return (_transitions); }
+    </#if>
+    
+</#if>
+    
+		protected ${map.name}_Default(String name, int id)
+        {
+            super (name, id);
+        }
+
+
+		<#if map.defaultState>
+			<#list map.defaultState.transitions as transition>
+				<#include "SMCJavaTemplate-Transition.fmtl">
+			</#list>
+		</#if>
+		
+        //-----------------------------------------------------------
+        // Member data.
+        //
+
+<#if reflectFlag}
+            //---------------------------------------------------
+            // Statics.
+            //
+            
+	<#if genericFlag}
+			private static Map<String, Integer> _transitions;
+    <#else>
+			private static Map _transitions;
+    <#if>
+      		
+    
+
+            // Now output the transition collection's
+            // initialization.
+            static
+            {
+            	
+	<#if genericFlag}
+                _transitions = new HashMap<String, Integer>();
+	<#else>
+                _transitions = new HashMap();
+    <#if>
+
+	<#list map.transitions as transition>
+
+                _transitions.put("${transition.name}",
+		<#if map.defaultState && map.defaultState.transitions.contains(transition)>
+							statemap.State.TRANSITION_DEFINED_DEFAULT);
+		<#else
+							statemap.State.TRANSITION_UNDEFINED);
+		</#if>
+			
+	</#list>
+        }
+</#if>
+
+}
+
+<#list map.states as state>
+	<#include "SMCJavaTemplate-State.fmtl">
+</#list>
+        
+  

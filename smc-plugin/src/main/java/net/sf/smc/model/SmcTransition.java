@@ -386,6 +386,33 @@ public final class SmcTransition
 
         return(retval.toString());
     }
+    
+    public boolean isDefault()
+    {
+    	return this.getName().equals("Default");
+    }
+    
+    public boolean hasGuardless()
+    {
+    // Loop through the guards and print each one.
+    	boolean nullCondition=false;
+        Iterator<SmcGuard> git;
+        SmcGuard guard;
+        for (git = _guards.iterator();
+             git.hasNext() == true;
+             )
+        {
+            guard = git.next();
+
+            // Count up the guards with no condition.
+            if (guard.getCondition().length() == 0)
+            {
+                nullCondition = true;
+            }
+
+        }
+        return nullCondition;
+    }
 
 //---------------------------------------------------------------
 // Member data

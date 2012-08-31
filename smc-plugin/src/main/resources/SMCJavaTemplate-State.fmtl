@@ -1,0 +1,94 @@
+        SmcMap map = state.getMap();
+        String context = map.getFSM().getContext();
+        String ${map.FSM.fmsClassName} = map.getFSM().get${map.FSM.fmsClassName}();
+        String ${map.name} = map.getName();
+        String ${state.name} = state.getClassName();
+        List<SmcAction> actions;
+        String indent2;
+
+         @SuppressWarnings("serial")
+        private static final class ${map.name}_${state.name} extends ${map.name}_Default
+		{	
+            //-------------------------------------------------------
+            // Member methods.
+            //
+        
+        
+<#if reflectFlag>
+	<#if genericFlag>
+            public Map<String, Integer> getTransitions(){ return _transitions };
+    <#else>
+            public Map getTransitions(){ return _transitions };
+	</#if>
+</#if>
+
+        private ${map.name}_${state.name}(String name, int id)
+        {
+        	super(name,id);
+        }
+
+<#if state.entryActions && state.entryActions.size > 0>
+
+        protected void Entry(${map.FSM.fmsClassName} context)
+        {
+
+            ${context} ctxt = context.getOwner();                
+    <#list state.entryActions as action>
+    	<#include SMCJavaTemplate-Action>
+    </#list>
+    		return;
+        }
+</#if>        
+
+<#if state.exitActions && state.exitActions.size > 0>
+
+        protected void Exit(${map.FSM.fmsClassName} context)
+        {
+
+            ${context} ctxt = context.getOwner();                
+    <#list state.exitActions as action>
+    	<#include SMCJavaTemplate-Action>
+    </#list>
+    		return;
+        }
+</#if>        
+
+<#list state.transitions as transition>
+	<#include "SMCJavaTemplate-Transition.fmtl">
+</#list>
+
+//-------------------------------------------------------
+// Member data.
+//
+
+<#if reflectFlag>
+
+			//---------------------------------------------------
+            // Statics.
+        <#if genericFlag>
+            private static Map<String, Integer>  _transitions;
+			static 
+			{
+				_transitions = new HashMap<String,Integer>();
+			}
+        <#else>
+            private static Map  _transitions;
+			static 
+			{
+				_transitions = new HashMap();
+        <#if>
+
+	<#list map.FMS.transitions as transition>
+			_transitions.put("${transition.name}",
+			
+			<#if state.transitions.contains(transition)
+				statemap.State.TRANSITION_DEFINED_LOCALLY)
+			<#elseif map.defaultState && map.defaultState.transitions.contains(transition)>
+				statemap.State.TRANSITION_DEFINED_DEFAULT)
+			<#else>
+				statemap.State.TRANSITION_UNDEFINED)
+			</#if>
+    </#list>
+            }
+</#if>        
+}

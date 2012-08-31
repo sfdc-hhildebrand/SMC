@@ -83,6 +83,8 @@ public final class SmcOptions
      * collections.
      * @param accessLevel use this access keyword for the
      * generated classes.
+     * @param templateName use this template file for code generation.
+     * @param templateSuffix use this suffix for code generation.
      */
     public SmcOptions(final String srcfileBase,
                       final String targetfileBase,
@@ -98,7 +100,9 @@ public final class SmcOptions
                       final boolean reflectFlag,
                       final boolean syncFlag,
                       final boolean genericFlag,
-                      final String accessLevel)
+                      final String accessLevel,
+                      final String templateName,
+                      final String templateSuffix)
     {
         _srcfileBase = srcfileBase;
         _targetfileBase = targetfileBase;
@@ -115,6 +119,8 @@ public final class SmcOptions
         _syncFlag = syncFlag;
         _genericFlag = genericFlag;
         _accessLevel = accessLevel;
+	    _templateName = templateName;
+	    _templateSuffix = templateSuffix;
     } // end f SmcOptions(...)
 
     //
@@ -260,7 +266,26 @@ public final class SmcOptions
         return (_accessLevel);
     } // end of accessLevel()
 
-    //
+	/**
+	 * Returns the template to use for generation.
+	 * @return the template to use for generation.
+	 */
+	public String templateName()
+	{
+		return (_templateName);
+	} // end of templateName()
+
+
+	/**
+	 * Returns the suffix to use for generation.
+	 * @return the suffix to use for generation.
+	 */
+	public String templateSuffix()
+	{
+		return (_templateSuffix);
+	} // end of templateName()
+
+	//
     // end of Get methods.
     //-----------------------------------------------------------
 
@@ -314,6 +339,12 @@ public final class SmcOptions
 
     // Used this access keyword for the generated classes.
     private final String _accessLevel;
+
+	// Use this template file for the generated classes.
+	private final String _templateName;
+
+	// Used this suffix for the generated classes.
+	private final String _templateSuffix;
 } // end of class SmcOptions
 
 //

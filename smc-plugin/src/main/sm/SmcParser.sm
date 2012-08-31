@@ -1,0 +1,1952 @@
+// -*- tab-width: 4; -*-
+
+%{
+/*
+ * The contents of this file are subject to the Mozilla Public
+ * License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy
+ * of the License at http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an
+ * "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * rights and limitations under the License.
+ *
+ * The Original Code is State Machine Compiler (SMC).
+ *
+ * The Initial Developer of the Original Code is Charles W. Rapp.
+ * Portions created by Charles W. Rapp are
+ * Copyright (C) 2000 - 2005, 2008. Charles W. Rapp.
+ * All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Eitan Suez contributed examples/Ant.
+ *   (Name withheld) contributed the C# code generation and
+ *   examples/C#.
+ *   Francois Perrad contributed the Python code generation and
+ *   examples/Python, Perl code generation and examples/Perl,
+ *   Ruby code generation and examples/Ruby, Lua code generation
+ *   and examples/Lua, Groovy code generation and examples/Groovy.
+ *   Chris Liscio contributed the Objective-C code generation
+ *   and examples/ObjC.
+ *
+ * smcParser --
+ *
+ *  This state machine defines the  state machine language.
+ *
+ * RCS ID
+ * $Id: SmcParser.sm,v 1.7 2010/03/05 21:29:54 fperrad Exp $
+ *
+ * CHANGE LOG
+ * $Log: SmcParser.sm,v $
+ * Revision 1.7  2010/03/05 21:29:54  fperrad
+ * Allows property with Groovy, Lua, Perl, Python, Ruby & Scala
+ *
+ * Revision 1.6  2010/03/03 19:18:41  fperrad
+ * fix property with Graph & Table
+ *
+ * Revision 1.5  2009/09/12 21:44:49  kgreg99
+ * Implemented feature req. #2718941 - user defined generated class name.
+ * A new statement was added to the syntax: %fsmclass class_name
+ * It is optional. If not used, generated class is called as before "XxxContext" where Xxx is context class name as entered via %class statement.
+ * If used, generated class is called asrequested.
+ * Following language generators are touched:
+ * c, c++, java, c#, objc, lua, groovy, scala, tcl, VB
+ * This feature is not tested yet !
+ * Maybe it will be necessary to modify also the output file name.
+ *
+ * Revision 1.4  2009/04/11 13:11:13  cwrapp
+ * Corrected raw mode 3 to handle multiple argument template/generic declarations.
+ *
+ * Revision 1.3  2009/03/27 09:41:47  cwrapp
+ * Added F. Perrad changes back in.
+ *
+ * Revision 1.2  2009/03/03 17:28:53  kgreg99
+ * 1. Bugs resolved:
+ * #2657779 - modified SmcParser.sm and SmcParserContext.java
+ * #2648516 - modified SmcCSharpGenerator.java
+ * #2648472 - modified SmcSyntaxChecker.java
+ * #2648469 - modified SmcMap.java
+ *
+ * Revision 1.1  2009/03/01 18:20:42  cwrapp
+ * Preliminary v. 6.0.0 commit.
+ *
+ * Revision 1.21  2008/08/16 14:31:37  fperrad
+ * + detabify
+ *
+ * Revision 1.20  2008/04/22 16:05:24  fperrad
+ * - add PHP language (patch from Toni Arnold)
+ *
+ * Revision 1.19  2008/01/22 08:56:55  fperrad
+ * - fix : allows Perl parameter with graph generation
+ *
+ * Revision 1.18  2007/11/19 18:53:21  fperrad
+ * + add : jump syntax
+ *   jump uses the same syntax as push,
+ *   allows transition between states of different maps but without stacking a return context.
+ *
+ * Revision 1.17  2007/07/16 06:28:06  fperrad
+ * + Added Groovy generator.
+ *
+ * Revision 1.16  2007/02/21 13:56:16  cwrapp
+ * Moved Java code to release 1.5.0
+ *
+ * Revision 1.15  2007/01/15 00:23:51  cwrapp
+ * Release 4.4.0 initial commit.
+ *
+ * Revision 1.14  2007/01/03 15:23:05  fperrad
+ * + Added Lua generator.
+ *
+ * Revision 1.13  2006/09/16 15:04:29  cwrapp
+ * Initial v. 4.3.3 check-in.
+ *
+ * Revision 1.12  2006/07/11 18:17:01  cwrapp
+ * Removed errors regarding percent keywords.
+ *
+ * Revision 1.11  2006/04/22 12:45:26  cwrapp
+ * Version 4.3.1
+ *
+ * Revision 1.10  2005/09/14 01:51:33  cwrapp
+ * Changes in release 4.2.0:
+ * New features:
+ *
+ * None.
+ *
+ * Fixed the following bugs:
+ *
+ * + (Java) -java broken due to an untested minor change.
+ *
+ * Revision 1.9  2005/08/26 15:21:34  cwrapp
+ * Final commit for release 4.2.0. See README.txt for more information.
+ *
+ * Revision 1.8  2005/07/07 12:11:56  fperrad
+ * Add a new token '$' for Perl language.
+ * The type of parameter is optional for Python, Per & Ruby.
+ *
+ * Revision 1.7  2005/06/30 10:44:23  cwrapp
+ * Added %access keyword which allows developers to set the generate Context
+ * class' accessibility level in Java and C#.
+ *
+ * Revision 1.6  2005/05/28 19:28:42  cwrapp
+ * Moved to visitor pattern.
+ *
+ * Revision 1.5  2005/02/21 15:37:52  charlesr
+ * Added Francois Perrad to Contributors section for Python work.
+ *
+ * Revision 1.4  2005/02/21 15:21:21  charlesr
+ * Added -graph target as allowing %include, %declare and %import.
+ *
+ * Revision 1.3  2005/02/03 17:06:21  charlesr
+ * SmcParser.warning() and .error() methods now take a line
+ * number argument. All calls to these method within the
+ * parser's FSM have been modified.
+ *
+ * Revision 1.2  2004/09/06 16:41:32  charlesr
+ * Added "property = value" syntax. Added C# support.
+ *
+ * Revision 1.1  2004/05/31 13:56:34  charlesr
+ * Added support for VB.net code generation.
+ *
+ * Revision 1.0  2003/12/14 21:06:00  charlesr
+ * Initial revision
+ *
+ */
+%}
+
+%class SmcParser
+%start ParserMap::Start
+
+%package net.sf.smc.parser
+
+%import java.util.List
+%import net.sf.smc.model.SmcAction
+%import net.sf.smc.model.SmcElement.TransType
+%import net.sf.smc.model.SmcFSM
+%import net.sf.smc.model.SmcGuard
+%import net.sf.smc.model.SmcMap
+%import net.sf.smc.model.SmcParameter
+%import net.sf.smc.model.SmcTransition
+%import net.sf.smc.parser.SmcParser.TargetLanguage
+
+%map ParserMap
+%%
+
+Start
+{
+    // The statemap can start with an optional raw source code
+    // section or go straight to the map definitions.
+    SOURCE(token: SmcLexer.Token)
+        nil
+        {
+            setSource(token.getValue());
+            setHeaderLine(token.getLineNumber());
+        }
+
+    // The state map's start state and class name must be
+    // specified before the map name.
+    // The header file is optional since its name can be
+    // deduced from the class name (maybe). The class name
+    // and header file are ignored when generating Tcl code.
+    START_STATE(token: SmcLexer.Token)
+        StartState
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    CLASS_NAME(token: SmcLexer.Token)
+        Context
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+	FSM_CLASS_NAME(token: SmcLexer.Token)
+		FsmClassName
+		{
+            setHeaderLine(token.getLineNumber());
+		}
+
+    HEADER_FILE(token: SmcLexer.Token)
+        HeaderFile
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    INCLUDE_FILE(token: SmcLexer.Token)
+        IncludeFile
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    PACKAGE_NAME(token: SmcLexer.Token)
+        Package
+        {}
+
+    IMPORT(token: SmcLexer.Token)
+        Import
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    DECLARE(token: SmcLexer.Token)
+        Declare
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    // The %access keyword is allowed for all target languages
+    // but ignored if target language does not support setting
+    // the class accessibility level.
+    ACCESS(token: SmcLexer.Token)
+        Access
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    MAP_NAME(token: SmcLexer.Token)
+      [ctxt.isValidHeader() == true]
+        MapName
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    MAP_NAME(token: SmcLexer.Token)
+        StartError
+        {
+            error("%map not preceded by %start and %class.",
+                  token.getLineNumber());
+            setHeaderLine(token.getLineNumber());
+        }
+
+    Default
+        StartError
+        {
+            error(
+                "Expecting \"%{ source %}\", %start, or %class.",
+                ctxt.getLineNumber());
+            setHeaderLine(ctxt.getLineNumber());
+        }
+} // end of state Start
+
+Context
+{
+    WORD(token: SmcLexer.Token)
+        Start
+        {
+            setContext(token.getValue());
+        }
+
+    Default
+        StartError
+        {
+            error("Missing name after %class.",
+                  ctxt.getLineNumber());
+        }
+} // end of state Context
+
+// The state name must be of the form "map::state".
+StartState
+{
+    WORD(token: SmcLexer.Token)
+      [ctxt.isValidStartState(token.getValue()) == true]
+        Start
+        {
+            setStartState(token.getValue());
+        }
+
+    WORD(token: SmcLexer.Token)
+        StartError
+        {
+            error(
+                "Start state must be of the form \"map::state\".",
+                token.getLineNumber());
+        }
+
+    Default
+        StartError
+        {
+            error("Missing state after %start.",
+                  ctxt.getLineNumber());
+        }
+} // end of state StartState
+
+HeaderFile
+    Entry
+    {
+        setRawMode("\n\r\f");
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        Start
+        {
+            setHeader(token.getValue());
+        }
+
+    Default
+        StartError
+        {
+            error("Missing header file after %header.",
+                  ctxt.getLineNumber());
+        }
+} // end of state HeaderFile
+
+IncludeFile
+    Entry
+    {
+        setRawMode("\n\r\f");
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        Start
+        {
+            addInclude(token.getValue());
+        }
+
+    Default
+        StartError
+        {
+            error("Missing include file after %include.",
+                  ctxt.getLineNumber());
+        }
+} // end of state IncludeFile
+
+Package
+{
+    WORD(token: SmcLexer.Token)
+        Start
+        {
+            setPackageName(token.getValue());
+        }
+
+    Default
+        StartError
+        {
+            error("Missing name after %package.",
+                  ctxt.getLineNumber());
+        }
+} // end of state Package
+
+FsmClassName
+{
+    WORD(token: SmcLexer.Token)
+        Start
+        {
+            setFsmClassName(token.getValue());
+        }
+
+    Default
+        StartError
+        {
+            error("Missing name after %FsmClassName.",
+                  ctxt.getLineNumber());
+        }
+} // end of state Context
+
+Import
+    Entry
+    {
+        setRawMode("\n\r\f");
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        Start
+        {
+            addImport(token.getValue());
+        }
+
+    Default
+        StartError
+        {
+            error("Missing name after %import.",
+                  ctxt.getLineNumber());
+        }
+} // end of state Import
+
+Declare
+    Entry
+    {
+        setRawMode("\n\r\f");
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        Start
+        {
+            addDeclare(token.getValue());
+        }
+
+    Default
+        StartError
+        {
+            error("Missing name after %declare.",
+                  ctxt.getLineNumber());
+        }
+} // end of state Declare
+
+Access
+    Entry
+    {
+        setRawMode("\n\r\f");
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        Start
+        {
+            setAccessLevel(token.getValue());
+        }
+
+    Default
+        StartError
+        {
+            error("Missing access level after %access.",
+                  ctxt.getLineNumber());
+        }
+} // end of state Access
+
+// Remain in this state until a known good token is found.
+StartError
+{
+    START_STATE(token: SmcLexer.Token)
+        StartState
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    CLASS_NAME(token: SmcLexer.Token)
+        Context
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+	FSM_CLASS_NAME(token: SmcLexer.Token)
+		FsmClassName
+		{
+            setHeaderLine(token.getLineNumber());
+		}
+
+    HEADER_FILE(token: SmcLexer.Token)
+        HeaderFile
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    PACKAGE_NAME(token: SmcLexer.Token)
+        Package
+        {}
+
+	IMPORT(token: SmcLexer.Token)
+        Import
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    DECLARE(token: SmcLexer.Token)
+        Declare
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    ACCESS(token: SmcLexer.Token)
+        Access
+        {}
+
+    MAP_NAME(token: SmcLexer.Token)
+      [ctxt.isValidHeader() == true]
+        MapName
+        {
+            setHeaderLine(token.getLineNumber());
+        }
+
+    MAP_NAME(token: SmcLexer.Token)
+        StartError
+        {
+            error("%map not preceded by %start and %class.",
+                  token.getLineNumber());
+        }
+
+    Default
+        nil
+        {}
+} // end of state StartError
+
+MapStart
+{
+    MAP_NAME(token: SmcLexer.Token)
+        MapName
+        {}
+
+    Default
+        MapStartError
+        {
+            error("Expecting %map.", ctxt.getLineNumber());
+        }
+} // end of state MapStart
+
+MapStartError
+{
+    MAP_NAME(token: SmcLexer.Token)
+        MapName
+        {}
+
+    Default
+        nil
+        {}
+} // end of state MapStartError
+
+MapName
+{
+    WORD(token: SmcLexer.Token)
+      [ctxt.isDuplicateMap(token.getValue()) == true]
+        MapStates
+        {
+            error("Duplicate map name.", token.getLineNumber());
+            createMap(token.getValue(), token.getLineNumber());
+        }
+
+    // The next word transition is the map's name.
+    WORD(token: SmcLexer.Token)
+        MapStates
+        {
+            createMap(token.getValue(), token.getLineNumber());
+        }
+
+    EOD(token: SmcLexer.Token)
+        States
+        {
+            error("Name expected after \"%map\".",
+                  token.getLineNumber());
+            createMap(token.getValue(), token.getLineNumber());
+        }
+
+    Default
+        nil
+        {
+            error("Name expected after \"%map\".",
+                  ctxt.getLineNumber());
+        }
+} // end of state MapName
+
+MapStates
+{
+    // %% marks the start of the map states.
+    EOD(token: SmcLexer.Token)
+        States
+        {}
+
+    WORD(token: SmcLexer.Token)
+        StateStart
+        {
+            error("Expecting %% after \"%map mapname\".",
+                  token.getLineNumber());
+            createState(token.getValue(), token.getLineNumber());
+        }
+
+    Default
+        MapStatesError
+        {
+            error("Expecting %% after \"%map mapname\".",
+                  ctxt.getLineNumber());
+        }
+} // end of state MapStates
+
+MapStatesError
+{
+    EOD(token: SmcLexer.Token)
+        States
+        {}
+
+    MAP_NAME(token: SmcLexer.Token)
+        MapName
+        {
+            addMap();
+        }
+
+    WORD(token: SmcLexer.Token)
+        StateStart
+        {
+            createState(token.getValue(), token.getLineNumber());
+        }
+
+    Default
+        nil
+        {}
+} // end of state MapStatesError
+
+States
+{
+    // The "%%" means we have reached the end of this map's
+    // definition.
+    EOD(token: SmcLexer.Token)
+        MapStart
+        {
+            addMap();
+        }
+
+    // A word is the next state's name.
+    WORD(token: SmcLexer.Token)
+      [ctxt.isDuplicateState(token.getValue()) == true]
+        StateStart
+        {
+            error("Duplicate state name.",
+                  token.getLineNumber());
+            createState(token.getValue(), token.getLineNumber());
+        }
+
+    WORD(token: SmcLexer.Token)
+        StateStart
+        {
+            createState(token.getValue(), token.getLineNumber());
+        }
+
+    // Error transitions.
+    ENTRY(token: SmcLexer.Token)
+        EntryStart
+        {
+            error(
+                "Expecting either a new state definition or end of map (%%).",
+                token.getLineNumber());
+            createState(token.getValue(), token.getLineNumber());
+        }
+
+    EXIT(token: SmcLexer.Token)
+        ExitStart
+        {
+            error(
+              "Expecting either a new state definition or end of map (%%).",
+              token.getLineNumber());
+            createState(token.getValue(), token.getLineNumber());
+        }
+
+    LEFT_BRACE(token: SmcLexer.Token)
+        Transitions
+        {
+            error(
+                "Expecting either a new state definition or end of map (%%).",
+                token.getLineNumber());
+            createState(token.getValue(), token.getLineNumber());
+        }
+
+    EQUAL(token: SmcLexer.Token)
+        Transitions
+        {
+            error(
+                "Expecting either a new state definition or end of map (%%).",
+                token.getLineNumber());
+            createState(token.getValue(), token.getLineNumber());
+        }
+
+    MAP_NAME(token: SmcLexer.Token)
+        MapName
+        {
+            error("Expecting \"%%\" before another \"%map\".",
+                  token.getLineNumber());
+            addMap();
+        }
+
+    Default
+        nil
+        {
+            error(
+                "Expecting either a new state definition or end of map (%%).",
+                ctxt.getLineNumber());
+        }
+} // end of state States
+
+StateStart
+{
+    // This state has an entry actions.
+    ENTRY(token: SmcLexer.Token)
+        EntryStart
+        {}
+
+    // This state has an exit action.
+    EXIT(token: SmcLexer.Token)
+        ExitStart
+        {}
+
+    // The left brace marks the start of the transitions.
+    LEFT_BRACE(token: SmcLexer.Token)
+        Transitions
+        {}
+
+    Default
+        StateStartError
+        {
+            error(
+                "After the state name is given, then either an entry action, exit action or opening brace is expected.",
+                ctxt.getLineNumber());
+        }
+} // end of state StateStart
+
+StateStartError
+{
+    ENTRY(token: SmcLexer.Token)
+        EntryStart
+        {}
+
+    EXIT(token: SmcLexer.Token)
+        ExitStart
+        {}
+
+    LEFT_BRACE(token: SmcLexer.Token)
+        Transitions
+        {}
+
+    Default
+        nil
+        {}
+} // end of state StateStartError
+
+EntryStart
+{
+    LEFT_BRACE(token: SmcLexer.Token)
+        EntryEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        StateStartError
+        {
+            error("An opening brace is expected after Entry.",
+                  ctxt.getLineNumber());
+        }
+} // end of state EntryStart
+
+EntryEnd
+{
+    actionsDone(actions: List<SmcAction>, lineNumber: int)
+        StateStart
+        {
+            setEntryAction(actions);
+        }
+
+    actionsError
+        StartState
+        {}
+} // end of state EntryEnd
+
+ExitStart
+{
+    LEFT_BRACE(token: SmcLexer.Token)
+        ExitEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        StateStartError
+        {
+            error("A opening brace is expected after Exit.",
+                  ctxt.getLineNumber());
+        }
+} // end of state ExitStart
+
+ExitEnd
+{
+    actionsDone(actions: List<SmcAction>, lineNumber: int)
+        StateStart
+        {
+            setExitAction(actions);
+        }
+
+    actionsError
+        StateStart
+        {}
+} // end of state ExitEnd
+
+Transitions
+{
+    // A '}' is the end of the transitions.
+    // Look for the next state.
+    RIGHT_BRACE(token: SmcLexer.Token)
+        States
+        {
+            addState();
+        }
+
+    // This is the transition name.
+    WORD(token: SmcLexer.Token)
+        TransStart
+        {
+            storeTransitionName(token.getValue());
+        }
+
+    Default
+        TransError
+        {
+            error("Expecting either a new transition or a closing brace.",
+                  ctxt.getLineNumber());
+        }
+} // end of state Transitions
+
+TransError
+{
+    RIGHT_BRACE(token: SmcLexer.Token)
+        States
+        {
+            addState();
+        }
+
+    WORD(token: SmcLexer.Token)
+        TransStart
+        {
+            storeTransitionName(token.getValue());
+        }
+
+    Default
+        nil
+        {}
+} // end of state TransError
+
+TransStart
+{
+    // A '(' means this transition has parameters.
+    LEFT_PAREN(token: SmcLexer.Token)
+        TransParams/push(ParamMap::Start)
+        {}
+
+    // A '[' denotes a guard. Since the code between the brackets
+    // may be raw source code, place the lexer in raw source code
+    // mode. This means the lexer will not process the characters
+    // by passing them through the lexer FSM.
+    LEFT_BRACKET(token: SmcLexer.Token)
+        TransGuard
+        {
+            createTransition(token.getLineNumber());
+        }
+
+    // NOTE: Now that SMC allows guards to be complex condition
+    // expressions, it is no longer possible to check for
+    // duplicate guards.
+
+    PUSH(token: SmcLexer.Token)
+        PushStart
+        {
+            createTransition(token.getLineNumber());
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_PUSH);
+            setEndState("nil");
+        }
+
+    POP(token: SmcLexer.Token)
+        PopStart
+        {
+            createTransition(token.getLineNumber());
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_POP);
+        }
+
+    JUMP(token: SmcLexer.Token)
+        JumpStart
+        {
+            createTransition(token.getLineNumber());
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_SET);
+        }
+
+    // This word is the end state. Now get the actions.
+    WORD(token: SmcLexer.Token)
+        SimpleTrans
+        {
+            createTransition(token.getLineNumber());
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_SET);
+            setEndState(token.getValue());
+        }
+
+    Default
+        TransStartError
+        {
+            error("Expecting either a guard, \"push\", \"pop\", \"jump\" or end state.",
+                  ctxt.getLineNumber());
+
+            // Need to create a dummy transition so that error
+            // handling will function.
+            createTransition(ctxt.getLineNumber());
+        }
+} // end of state TransStart
+
+TransStartError
+{
+    // A '(' means this transition has parameters.
+    LEFT_PAREN(token: SmcLexer.Token)
+        TransParams/push(ParamMap::Start)
+        {}
+
+    // A '[' means this transition is guarded. Have the lexer
+    // collect the raw source code.
+    LEFT_BRACKET(token: SmcLexer.Token)
+        TransGuard
+        {}
+
+    // A '{' is the start of the transition actions.
+    LEFT_BRACE(token: SmcLexer.Token)
+        ActionEnd/push(ActionMap::Start)
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_SET);
+            setEndState("End state missing");
+
+            createActionList();
+        }
+
+    PUSH(token: SmcLexer.Token)
+        PushStart
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_PUSH);
+            setEndState("nil");
+        }
+
+    POP(token: SmcLexer.Token)
+        PopStart
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_POP);
+        }
+
+    JUMP(token: SmcLexer.Token)
+        JumpStart
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_SET);
+            setEndState("nil");
+        }
+
+    // One way or another this transition is now kaput.
+    RIGHT_BRACE(token: SmcLexer.Token)
+        Transitions
+        {
+            addGuard();
+            addTransition();
+        }
+
+    Default
+        nil
+        {}
+} // end of state TransStartError
+
+// Wait here for the transition parameter list to be returned.
+TransParams
+{
+    // The "Default" transition may not have parameters.
+    // But create a bogus transition before continuing.
+    paramsDone(params: List<SmcParameter>, lineNumber: int)
+      [ctxt.getTransitionName().equalsIgnoreCase(
+           "Default") == true &&
+       params.isEmpty() == false]
+        TransNext
+        {
+            error("Default transitions may not have parameters.",
+                  lineNumber);
+            createTransition(params, lineNumber);
+        }
+
+    paramsDone(params: List<SmcParameter>, lineNumber: int)
+        TransNext
+        {
+            createTransition(params, lineNumber);
+        }
+
+    // Create a bogus transition and keep going.
+    paramsError(params: List<SmcParameter>, lineNumber: int)
+        TransNext
+        {
+            createTransition(params, lineNumber);
+        }
+} // end of state TransParams
+
+TransNext
+{
+    // A bracket denotes a guard.
+    LEFT_BRACKET(token: SmcLexer.Token)
+        TransGuard
+        {}
+
+    // NOTE: Now that SMC allows guards to be complex condition
+    // expressions, it is no longer possible to check for
+    // duplicate guards.
+
+    PUSH(token: SmcLexer.Token)
+        PushStart
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_PUSH);
+            setEndState("nil");
+        }
+
+    POP(token: SmcLexer.Token)
+        PopStart
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_POP);
+        }
+
+    JUMP(token: SmcLexer.Token)
+        JumpStart
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_SET);
+            setEndState("nil");
+        }
+
+    // This word is the end state. Now get the actions.
+    WORD(token: SmcLexer.Token)
+        SimpleTrans
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_SET);
+            setEndState(token.getValue());
+        }
+
+    Default
+        TransNextError
+        {
+            error("Expecting either a guard, \"push\", \"pop\", \"jump\" or end state.",
+                  ctxt.getLineNumber());
+        }
+} // end of state TransNext
+
+TransNextError
+{
+    // Transition parameters have already been defined.
+    LEFT_PAREN(token: SmcLexer.Token)
+        nil
+        {}
+
+    // A bracket means this transition is guarded.
+    LEFT_BRACKET(token: SmcLexer.Token)
+        TransGuard
+        {}
+
+    PUSH(token: SmcLexer.Token)
+        PushStart
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_PUSH);
+            setEndState("nil");
+        }
+
+    POP(token: SmcLexer.Token)
+        PopStart
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_POP);
+        }
+
+    JUMP(token: SmcLexer.Token)
+        JumpStart
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_SET);
+            setEndState("nil");
+        }
+
+    WORD(token: SmcLexer.Token)
+        SimpleTrans
+        {
+            createGuard(ctxt.getTransitionName(),
+                        "",
+                        token.getLineNumber());
+            setTransType(TransType.TRANS_SET);
+            setEndState(token.getValue());
+        }
+
+    Default
+        nil
+        {}
+} // end of state TransNextError
+
+// Because the lexer is operating in raw mode, the lexer will
+// return either a SOURCE token or an ERROR token. Since ERROR
+// tokens are not passed into this FSM, then only the SOURCE
+// token must be handled.
+TransGuard
+    Entry
+    {
+        setRawMode("[", "]");
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        EndState
+        {
+            createGuard(ctxt.getTransitionName(),
+                        token.getValue(),
+                        token.getLineNumber());
+        }
+} // end of state TransGuard
+
+EndState
+{
+    // NOTE: Now that SMC allows guards to be complex condition
+    // expressions, it is no longer possible to check for
+    // duplicate guards.
+    PUSH(token: SmcLexer.Token)
+        PushStart
+        {
+            setTransType(TransType.TRANS_PUSH);
+            setEndState("nil");
+        }
+
+    POP(token: SmcLexer.Token)
+        PopStart
+        {
+            setTransType(TransType.TRANS_POP);
+        }
+
+    JUMP(token: SmcLexer.Token)
+        JumpStart
+        {
+            setTransType(TransType.TRANS_SET);
+            setEndState("nil");
+        }
+
+    WORD(token: SmcLexer.Token)
+        SimpleTrans
+        {
+            setTransType(TransType.TRANS_SET);
+            setEndState(token.getValue());
+        }
+
+    Default
+        EndStateError
+        {
+            error("Expecting either \"push\", \"pop\", \"jump\" or end state.",
+                  ctxt.getLineNumber());
+        }
+} // end of state EndState
+
+EndStateError
+{
+    LEFT_BRACE(token: SmcLexer.Token)
+        ActionEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        nil
+        {}
+} // end of state EndStateError
+
+SimpleTrans
+{
+    // A slash means that this is really a push transition.
+    SLASH(token: SmcLexer.Token)
+        PushTransition
+        {
+            setTransType(TransType.TRANS_PUSH);
+        }
+
+    // A brace denotes the start of the actions.
+    LEFT_BRACE(token: SmcLexer.Token)
+        ActionEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        ActionStartError
+        {
+            error("An opening brace must proceed any action definitions.",
+                  ctxt.getLineNumber());
+        }
+} // end of state SimpleTrans
+
+// This is the push part of a "<state1>/push(<state2>)" end statefd
+// <state1> has been parse, now look for the push.
+PushTransition
+{
+    PUSH(token: SmcLexer.Token)
+        PushStart
+        {}
+
+    Default
+        PushError
+        {
+            error("\"push\" must follow a '/'.",
+                  ctxt.getLineNumber());
+        }
+} // end of state PushTransition
+
+PushStart
+{
+    LEFT_PAREN(token: SmcLexer.Token)
+        PushMap
+        {}
+
+    Default
+        PushError
+        {
+            error("\"push\" must be followed by a '/'.",
+                  ctxt.getLineNumber());
+        }
+} // end of state PushStart
+
+PushError
+{
+    RIGHT_PAREN(token: SmcLexer.Token)
+        ActionStart
+        {}
+
+    LEFT_BRACE(token: SmcLexer.Token)
+        ActionEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        nil
+        {}
+} // end of state PushError
+
+PushMap
+{
+    WORD(token: SmcLexer.Token)
+        PushEnd
+        {
+            setPushState(token.getValue());
+        }
+
+    Default
+        PushError
+        {
+            error("Expecting a state name.",
+                  ctxt.getLineNumber());
+        }
+} // end of state PushMap
+
+PushEnd
+{
+    RIGHT_PAREN(token: SmcLexer.Token)
+        ActionStart
+        {}
+
+    Default
+        PushError
+        {
+            error("push transition missing closing paren.",
+                  ctxt.getLineNumber());
+        }
+} // end of state PushEnd
+
+// Must be a dead battery ...
+JumpStart
+{
+    LEFT_PAREN(token: SmcLexer.Token)
+        JumpMap
+        {}
+
+    Default
+        JumpError
+        {
+            error("\"jump\" must be followed by a '/'.",
+                  ctxt.getLineNumber());
+        }
+} // end of state JumpStart
+
+// Must have reversed the leads ...
+JumpError
+{
+    RIGHT_PAREN(token: SmcLexer.Token)
+        ActionStart
+        {}
+
+    LEFT_BRACE(token: SmcLexer.Token)
+        ActionEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        nil
+        {}
+} // end of state JumpError
+
+JumpMap
+{
+    WORD(token: SmcLexer.Token)
+        JumpEnd
+        {
+            setEndState(token.getValue());
+        }
+
+    Default
+        JumpError
+        {
+            error("Expecting a state name.",
+                  ctxt.getLineNumber());
+        }
+} // end of state JumpMap
+
+JumpEnd
+{
+    RIGHT_PAREN(token: SmcLexer.Token)
+        ActionStart
+        {}
+
+    Default
+        JumpError
+        {
+            error("jump transition missing closing paren.",
+                  ctxt.getLineNumber());
+        }
+} // end of state JumpEnd
+
+PopStart
+{
+    LEFT_PAREN(token: SmcLexer.Token)
+        PopAction
+        {}
+
+    // A brace denotes the start of the actions.
+    // It is acceptable not to provide a pop transition.
+    LEFT_BRACE(token: SmcLexer.Token)
+        ActionEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        PopError
+        {
+            error("Expecting '(trans)' or opening brace after pop.",
+                  ctxt.getLineNumber());
+        }
+} // end of state PopStart
+
+PopError
+{
+    RIGHT_PAREN(token: SmcLexer.Token)
+        ActionStart
+        {}
+
+    LEFT_BRACE(token: SmcLexer.Token)
+        ActionEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        nil
+        {}
+} // end of state PopError
+
+PopAction
+{
+    RIGHT_PAREN(token: SmcLexer.Token)
+        ActionStart
+        {}
+
+    WORD(token: SmcLexer.Token)
+        PopArgs
+        {
+            setEndState(token.getValue());
+        }
+
+    Default
+        PopError
+        {
+            error("Expecting either a pop transition or closing paren.",
+                  ctxt.getLineNumber());
+        }
+} // end of state PopAction
+
+PopArgs
+{
+    // No more pop arguments. Start collecting the actions.
+    RIGHT_PAREN(token: SmcLexer.Token)
+        ActionStart
+        {}
+
+    // A comma signifies there are more arguments in this
+    // transition.
+    COMMA(token: SmcLexer.Token)
+        PopArgsEnd
+        {}
+
+    Default
+        PopError
+        {
+            error("Pop transition missing closing paren.",
+                  ctxt.getLineNumber());
+        }
+} // end of state PopArgs
+
+PopArgsEnd
+    Entry
+    {
+        setRawMode("(", ")");
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        ActionStart
+        {
+            setPopArgs(token.getValue());
+        }
+} // end of state PopArgsEnd
+
+ActionStart
+{
+    // A brace denotes the start of the actions.
+    LEFT_BRACE(token: SmcLexer.Token)
+        ActionEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        ActionStartError
+        {
+            error("An opening brace must proceed any action definitions.",
+                  ctxt.getLineNumber());
+        }
+} // end of state ActionStart
+
+ActionEnd
+{
+    actionsDone(actions: List<SmcAction>, lineNumber: int)
+        Transitions
+        {
+            setActions(actions);
+            addGuard();
+            addTransition();
+        }
+
+    actionsError
+        Transitions
+        {}
+} // end of state ActionEnd
+
+ActionStartError
+{
+    LEFT_BRACE(token: SmcLexer.Token)
+        ActionEnd/push(ActionMap::Start)
+        {
+            createActionList();
+        }
+
+    Default
+        nil
+        {}
+} // end of state ActionStartError
+
+%% // end of map ParserMap
+
+// This map parses transition parameters.
+%map ParamMap
+%%
+
+Start
+    Entry
+    {
+        createParamList();
+    }
+{
+    // This is the parameter name.
+    WORD(token: SmcLexer.Token)
+        ParamSeparator
+        {
+            createParameter(token.getValue(),
+                            token.getLineNumber());
+        }
+
+    // Empty parameter lists are fine.
+    RIGHT_PAREN(token: SmcLexer.Token)
+        pop(paramsDone,
+            ctxt.getParamList(),
+            token.getLineNumber())
+        {}
+
+    // Perl/PHP parameter
+    DOLLAR(token: SmcLexer.Token)
+      [ctxt.getTargetLanguage() == TargetLanguage.PERL ||
+       ctxt.getTargetLanguage() == TargetLanguage.PHP ||
+       ctxt.getTargetLanguage() == TargetLanguage.GRAPH ||
+       ctxt.getTargetLanguage() == TargetLanguage.TABLE]
+        Dollar
+        {}
+
+    // Anything else is an error. Go to the error state and
+    // read in all remaining characters until the end paren
+    // is found.
+    Default
+        Error
+        {
+            error("Invalid parameter syntax.",
+                  ctxt.getLineNumber());
+        }
+} // end of state Start
+
+Dollar
+{
+    // This is the parameter name.
+    WORD(token: SmcLexer.Token)
+        ParamSeparator
+        {
+            createParameter("$" + token.getValue(),
+                            token.getLineNumber());
+        }
+
+    // Anything else is an error. Go to the error state and
+    // read in all remaining characters until the end paren
+    // is found.
+    Default
+        Error
+        {
+            error("Invalid parameter syntax.",
+                  ctxt.getLineNumber());
+        }
+} // end of state Dolloar
+
+ParamSeparator
+{
+    // The parameter name and type are separated by a colon.
+    COLON(token: SmcLexer.Token)
+        ParamType
+        {}
+
+    // The parameter does *not* need a type if the target
+    // language is typeless.
+    COMMA(token: SmcLexer.Token)
+      [ctxt.getTargetLanguage() == TargetLanguage.TCL ||
+       ctxt.getTargetLanguage() == TargetLanguage.GROOVY ||
+       ctxt.getTargetLanguage() == TargetLanguage.LUA ||
+       ctxt.getTargetLanguage() == TargetLanguage.PERL ||
+       ctxt.getTargetLanguage() == TargetLanguage.PHP ||
+       ctxt.getTargetLanguage() == TargetLanguage.PYTHON ||
+       ctxt.getTargetLanguage() == TargetLanguage.RUBY ||
+       ctxt.getTargetLanguage() == TargetLanguage.GRAPH ||
+       ctxt.getTargetLanguage() == TargetLanguage.TABLE]
+        Start
+        {
+            addParameter();
+        }
+
+    RIGHT_PAREN(token: SmcLexer.Token)
+      [ctxt.getTargetLanguage() == TargetLanguage.TCL ||
+       ctxt.getTargetLanguage() == TargetLanguage.GROOVY ||
+       ctxt.getTargetLanguage() == TargetLanguage.LUA ||
+       ctxt.getTargetLanguage() == TargetLanguage.PERL ||
+       ctxt.getTargetLanguage() == TargetLanguage.PHP ||
+       ctxt.getTargetLanguage() == TargetLanguage.PYTHON ||
+       ctxt.getTargetLanguage() == TargetLanguage.RUBY ||
+       ctxt.getTargetLanguage() == TargetLanguage.GRAPH ||
+       ctxt.getTargetLanguage() == TargetLanguage.TABLE]
+        pop(paramsDone,
+            ctxt.getParamList(),
+            token.getLineNumber())
+        {
+            addParameter();
+        }
+
+    // The target language is typed. This is not allowed.
+    COMMA(token: SmcLexer.Token)
+        Error
+        {
+            error("Parameter type missing.",
+                  token.getLineNumber());
+        }
+
+    RIGHT_PAREN(token: SmcLexer.Token)
+        pop(paramsError,
+            ctxt.getParamList(),
+            token.getLineNumber())
+        {
+            error("Parameter type missing.",
+                  token.getLineNumber());
+        }
+
+    Default
+        Error
+        {
+            error("Invalid parameter syntax.",
+                  ctxt.getLineNumber());
+        }
+} // end of state ParamSeparator
+
+ParamType
+    Entry
+    {
+        setRawMode2();
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        NextParam
+        {
+            setParamType(token.getValue());
+        }
+} // end of state ParamType
+
+NextParam
+{
+    COMMA(token: SmcLexer.Token)
+        Start
+        {
+            addParameter();
+        }
+
+    RIGHT_PAREN(token: SmcLexer.Token)
+        pop(paramsDone,
+            ctxt.getParamList(),
+            token.getLineNumber())
+        {
+            addParameter();
+        }
+
+    Default
+        Error
+        {
+            error("Invalid parameter syntax.",
+                  ctxt.getLineNumber());
+        }
+} // end of state NextParam
+
+Error
+    Entry
+    {
+        setRawMode("(", ")");
+        clearParameter();
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    // Delete any collected parameters.
+    SOURCE(token: SmcLexer.Token)
+        pop(paramsError,
+            ctxt.getParamList(),
+            token.getLineNumber())
+        {}
+} // end of state Error
+
+%% // end of map ParamMap
+
+// This map parses transition actions.
+// Transition actions are of the form:
+//   WORD '(' SOURCE ')' ';'
+//
+// VB and C#: Transition actions may also have the form:
+//   WORD '=' SOURCE ';'
+//
+%map ActionMap
+%%
+
+Start
+{
+    // This word is the action name.
+    WORD(token: SmcLexer.Token)
+        ActionName
+        {
+            createAction(token.getValue(),
+                         token.getLineNumber());
+        }
+
+    RIGHT_BRACE(token: SmcLexer.Token)
+        pop(actionsDone,
+            ctxt.getActionList(),
+            token.getLineNumber())
+        {}
+
+    Default
+        ActionError
+        {
+            clearActions();
+            error("Expecting either a method name or a closing brace",
+                  ctxt.getLineNumber());
+        }
+} // end of state Start
+
+ActionName
+{
+    LEFT_PAREN(token: SmcLexer.Token)
+        ActionArgs/push(ArgsMap::Start)
+        {
+            createArgList();
+        }
+
+    // .Net uses some syntactic sugar instead of getter/setter
+    // methods. Let say a class has a member data _name. In Java
+    // and C++ you do "name = obj.getName();" to retrieve _name
+    // and "obj.setName(name);" to set _name.
+    // In .Net you do "name = obj.Name" and "obj.Name = name"
+    // where Name is a property with Get and Set routines.
+    // So you are still doing method calls but .Net uses the
+    // "=" operator to hide the fact.
+    //
+    // I don't like that.
+    //
+    // Either way, it is part of .Net languages and SMC must
+    // allow .Net users to access this capability.
+    EQUAL(token: SmcLexer.Token)
+      [ctxt.getTargetLanguage() != TargetLanguage.GRAPH &&
+       ctxt.getTargetLanguage() != TargetLanguage.C_SHARP &&
+       ctxt.getTargetLanguage() != TargetLanguage.GROOVY &&
+       ctxt.getTargetLanguage() != TargetLanguage.LUA &&
+       ctxt.getTargetLanguage() != TargetLanguage.PERL &&
+       ctxt.getTargetLanguage() != TargetLanguage.PYTHON &&
+       ctxt.getTargetLanguage() != TargetLanguage.RUBY &&
+       ctxt.getTargetLanguage() != TargetLanguage.SCALA &&
+       ctxt.getTargetLanguage() != TargetLanguage.VB &&
+       ctxt.getTargetLanguage() != TargetLanguage.TABLE]
+        ActionError
+        {
+            clearActions();
+            error("'=' property assignment may only be used with -vb, -csharp or -graph",
+                  token.getLineNumber());
+        }
+
+    EQUAL(token: SmcLexer.Token)
+        PropertyAssignment
+        {
+            setProperty(true);
+            createArgList();
+        }
+
+    Default
+        ActionError
+        {
+            clearActions();
+            error(
+                "Expecting an open paren after the method name",
+                ctxt.getLineNumber());
+        }
+} // end of state ActionName
+
+ActionArgs
+{
+    argsDone(args: List<String>)
+        ActionEnd
+        {
+            setActionArgs(args);
+        }
+
+    argsError
+        ActionError
+        {}
+} // end of state ActionArgs
+
+ActionEnd
+{
+    // Look for the semicolon.
+    SEMICOLON(token: SmcLexer.Token)
+        Start
+        {
+            addAction();
+        }
+
+    Default
+        ActionError
+        {
+            error("Expecting a ';' after closing paren",
+                  ctxt.getLineNumber());
+        }
+} // end of state ActionEnd
+
+PropertyAssignment
+    Entry
+    {
+        setRawMode(";");
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    // .Net property assignment takes only one argument.
+    SOURCE(token: SmcLexer.Token)
+        Start
+        {
+            createArgument(token.getValue(),
+                           token.getLineNumber());
+            addArgument();
+            setActionArgs(ctxt.getArgsList());
+            addAction();
+        }
+
+    Default
+        ActionError
+        {
+            error("Missing ';' at end of property assignment",
+                  ctxt.getLineNumber());
+        }
+} // end of state PropertyAssignment
+
+// Wait here for a right brace which we will assume to be the
+// action body's end.
+ActionError
+{
+    RIGHT_BRACE(token: SmcLexer.Token)
+        pop(actionsError)
+        {}
+
+    Default
+        nil
+        {}
+} // end of state ActionError
+
+%% // end of map ActionMap
+
+// This map parses an action's arguments.
+%map ArgsMap
+%%
+
+Start
+    Entry
+    {
+        setRawMode2();
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        NextArg
+        {
+            createArgument(token.getValue(),
+                           token.getLineNumber());
+        }
+} // end of state Start
+
+NextArg
+{
+    COMMA(token: SmcLexer.Token)
+        Start
+        {
+            addArgument();
+        }
+
+    RIGHT_PAREN(token: SmcLexer.Token)
+        pop(argsDone, ctxt.getArgsList())
+        {
+            addArgument();
+        }
+
+    Default
+        Error
+        {
+            error("Missing ',' or closing paren after argument.",
+                  ctxt.getLineNumber());
+        }
+} // end of state NextArg
+
+Error
+    Entry
+    {
+        setRawMode("{", "}");
+        clearArguments();
+    }
+    Exit
+    {
+        setCookedMode();
+    }
+{
+    SOURCE(token: SmcLexer.Token)
+        pop(argsError)
+        {}
+} // end of state Error
+
+%% // end of map ArgsMap
