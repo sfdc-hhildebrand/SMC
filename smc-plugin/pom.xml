@@ -43,6 +43,13 @@
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>smc</groupId>
+			<artifactId>smc.jar</artifactId>
+			<version>1.0.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/Smc.jar</systemPath>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
