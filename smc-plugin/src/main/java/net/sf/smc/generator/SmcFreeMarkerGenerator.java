@@ -113,7 +113,7 @@ public final class SmcFreeMarkerGenerator extends SmcCodeGenerator {
 
 	    try
 	    {
-		    cfg.setDirectoryForTemplateLoading( new File( fsm.getSourceFileName() ) );
+		    cfg.setDirectoryForTemplateLoading( new File( _options.templateDirectory() ) );
 
 		    cfg.setObjectWrapper( new DefaultObjectWrapper() );
 
@@ -121,12 +121,30 @@ public final class SmcFreeMarkerGenerator extends SmcCodeGenerator {
 		    root.put( "rawSource", rawSource );
 		    root.put( "context", context );
 		    root.put( "fsmClassName", fsmClassName );
-		    root.put( "package", packageName );
+		    root.put( "packageName", packageName );
 		    root.put( "startState", startState );
 		    root.put( "maps", maps );
 		    root.put( "transitions", transitions );
 		    root.put( "requiresPush", requiresPush );
+		    root.put("accessLevel",_options.accessLevel());
+		    root.put("reflectFlag",_options.reflectFlag());
+		    root.put("genericFlag",_options.genericFlag());
+		    root.put("accessLevel",_options.accessLevel());
+		    root.put("noCatchFlag",_options.noCatchFlag());
+		    root.put("serialFlag",_options.serialFlag());
+		    root.put("srcfileBase",_options.srcfileBase());
+		    root.put("noStreamsFlag",_options.noStreamsFlag());
+		    root.put("castType",_options.castType());
+		    root.put("debugLevel",_options.debugLevel());
+		    root.put("graphLevel",_options.graphLevel());
+		    root.put("syncFlag",_options.syncFlag());
+		    root.put("headerDirectory",_options.headerDirectory());
+		    root.put("srcDirectory",_options.srcDirectory());
+		    root.put("targetfileBase",_options.targetfileBase());
+		    root.put("templateDirectory",_options.templateName());
+		    root.put("templateSuffix",_options.templateSuffix());
 		    root.put( "fsm", fsm );
+		    root.put( "generator", this );
 
 		    Template template = cfg.getTemplate( _options.templateName() );
 		    Writer out = new OutputStreamWriter( _source );
@@ -155,7 +173,7 @@ public final class SmcFreeMarkerGenerator extends SmcCodeGenerator {
                + packageName.replace('.', File.separatorChar) + File.separator;
     }
     
-    private String getCleanStartState()
+    public String getCleanStartState()
     {
     	String javaState;
 	    int index;

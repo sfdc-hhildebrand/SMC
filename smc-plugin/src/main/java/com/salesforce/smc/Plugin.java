@@ -25,15 +25,14 @@
  */
 package com.salesforce.smc;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.ArrayList;
-
 import net.sf.smc.Smc;
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
 
 /**
  * @author hhildebrand
@@ -179,7 +178,22 @@ public class Plugin extends AbstractMojo {
      */
     private boolean      verbose         = false;
 
-    @Override
+	/***
+	 * template file to use
+	 */
+	private String template;
+
+	/**
+	 * Template directory to use
+	 */
+	private String templateDirectory;
+
+	/**
+	 * template stuffix to use
+	 */
+	private String templateSuffix;
+
+	@Override
     public void execute() throws MojoExecutionException {
         if (docDirectory == null) {
             docDirectory = targetDirectory;
@@ -240,7 +254,26 @@ public class Plugin extends AbstractMojo {
             }
         }
 
-        args.add("-d");
+		if (template != null)
+		{
+			args.add("-template");
+			args.add(template);
+		}
+
+		if (templateDirectory != null)
+		{
+			args.add("-tdir");
+			File tdir = new File(project.getBasedir(), templateDirectory);
+			args.add(tdir.getAbsolutePath());
+		}
+
+		if (templateSuffix != null)
+		{
+			args.add("-tsuffix");
+			args.add(templateSuffix);
+		}
+
+		args.add("-d");
         args.add(targetDir.getAbsolutePath());
         args.add("-" + target);
         args.addAll(sources);
@@ -403,4 +436,19 @@ public class Plugin extends AbstractMojo {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
+
+	public void setTemplate(String template)
+	{
+		this.template = template;
+	}
+
+	public void setTemplateDirectory(String dir)
+	{
+		this.templateDirectory = dir;
+	}
+
+	public void setTemplateSuffix(String templateSuffix)
+	{
+		this.templateSuffix = templateSuffix;
+	}
 }

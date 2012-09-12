@@ -430,16 +430,21 @@ public final class SmcGuard
 
         return (retcode);
     } // end of hasActions(List<SmcAction>)
+
+	public boolean getHasActions()
+	{
+		return _hasActions();
+	}
     
-    protected boolean isLoopback()
+    public boolean isLoopback()
     {
         return (
             (_transType == TransType.TRANS_SET ||
              _transType == TransType.TRANS_PUSH) &&
             _endState.equals(SmcElement.NIL_STATE) == true);
     }
-    
-    protected String getEndStateScoped()
+
+	public String getEndStateScoped()
     {
     	if (_transType != TransType.TRANS_POP &&
             _endState.length () > 0 &&
@@ -449,8 +454,8 @@ public final class SmcGuard
         }
         return _endState;
     }
-    
-        protected String getPushStateScoped()
+
+	public String getPushStateScoped()
     {
             return scopeStateName(_pushState);
     }

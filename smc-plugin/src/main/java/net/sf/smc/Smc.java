@@ -113,6 +113,7 @@ public final class Smc
         _accessLevel = null;
 	    _templateName = null;
 		_templateSuffix=null;
+	    _templateDirectory=null;
 
         // Process the command line.
         if (parseArgs(args) == false)
@@ -490,6 +491,33 @@ public final class Smc
 		            argsConsumed = 2;
 	            }
             }
+            else if (args[i].startsWith("-td") == true)
+            {
+	            // -tdir should be followed by a directory.
+	            if ((i + 1) == args.length ||
+			                args[i+1].startsWith("-") == true)
+	            {
+		            retcode = false;
+		            _errorMsg =
+				            TEMPLATE_DIR_FLAG +
+						            " not followed by a value";
+	            }
+	            else if (_supportsOption(
+			                                    TEMPLATE_DIR_FLAG) == false)
+	            {
+		            retcode = false;
+		            _errorMsg =
+				            _targetLanguage.name() +
+						            " does not support " +
+						            TEMPLATE_DIR_FLAG +
+						            ".";
+	            }
+	            else
+	            {
+		            _templateDirectory = args[i+1];
+		            argsConsumed = 2;
+	            }
+            }
             else if (args[i].startsWith("-template") == true)
             {
 	            // -template should be followed by a suffix.
@@ -517,7 +545,7 @@ public final class Smc
 		            argsConsumed = 2;
 	            }
             }
-            else if (args[i].startsWith("-ca") == true)
+            else if (args[i].startsWith( "-ca" ) == true)
             {
                 // -cast should be followed by a cast type.
                 if ((i + 1) == args.length ||
@@ -551,7 +579,7 @@ public final class Smc
                     argsConsumed = 2;
                 }
             }
-            else if (args[i].equals("-d") == true)
+            else if (args[i].equals( "-d" ) == true)
             {
                 // -d should be followed by a directory.
                 if ((i + 1) == args.length ||
@@ -628,7 +656,7 @@ public final class Smc
                         _isValidDirectory(_headerDirectory);
                 }
             }
-            else if (args[i].startsWith("-gl") == true)
+            else if (args[i].startsWith( "-gl" ) == true)
             {
                 // -glevel should be followed by an integer.
                 if ((i + 1) == args.length ||
@@ -712,7 +740,7 @@ public final class Smc
                     argsConsumed = 1;
                 }
             }
-            else if (args[i].equals("-g1") == true)
+            else if (args[i].equals( "-g1" ) == true)
             {
                 if (_supportsOption(DEBUG_LEVEL1_FLAG) == false)
                 {
@@ -1312,6 +1340,7 @@ public final class Smc
                                  _generic,
                                  _accessLevel,
 		                                _templateName,
+		                         _templateDirectory,
 		                                _templateSuffix);
 
         // Create the header file name and generator -
@@ -1671,10 +1700,13 @@ public final class Smc
     // levels.
     private static Map<Language, List<String>> _accessMap;
 
+	// parameters for template generation. The name of the template, the file extension to generate
+	// and the directory to search for files
 	private static String _templateName;
 	private static String _templateSuffix;
+	private static String _templateDirectory;
 
-    //-----------------------------------------------------------
+	//-----------------------------------------------------------
     // Constants.
     //
 
@@ -1708,6 +1740,7 @@ public final class Smc
     private static final String VERSION_FLAG = "-version";
     private static final String VVERBOSE_FLAG = "-vverbose";
 	private static final String TEMPLATE_SUFFIX_FLAG = "-tsuffix";
+	private static final String TEMPLATE_DIR_FLAG = "-tdir";
 	private static final String TEMPLATE_NAME_FLAG = "-template";
 
 	private static final String PACKAGE_LEVEL = "package";
@@ -1974,7 +2007,8 @@ public final class Smc
 	    // The template based options.
 	    languages = new ArrayList<Language>();
 	    languages.add(_languages[TargetLanguage.FREEMARKER.ordinal()]);
-	    _optionMap.put(TEMPLATE_SUFFIX_FLAG, languages);
+	    _optionMap.put( TEMPLATE_SUFFIX_FLAG, languages );
+	    _optionMap.put(TEMPLATE_DIR_FLAG, languages);
 	    _optionMap.put(TEMPLATE_NAME_FLAG, languages);
 	    // Define the allowed access level keywords for each language
         // which supports the -access option.

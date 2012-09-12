@@ -1,6 +1,8 @@
-        SmcMap map = state.getMap();
+import java.util.HashMap;
+
+SmcMap map = state.getMap();
         String context = map.getFSM().getContext();
-        String ${map.FSM.fmsClassName} = map.getFSM().get${map.FSM.fmsClassName}();
+        String ${fsmClassName} = map.getFSM().get${fsmClassName}();
         String ${map.name} = map.getName();
         String ${state.name} = state.getClassName();
         List<SmcAction> actions;
@@ -27,27 +29,27 @@
         	super(name,id);
         }
 
-<#if state.entryActions && state.entryActions.size > 0>
+<#if (state.entryActions?? && (state.entryActions?size > 0))>
 
-        protected void Entry(${map.FSM.fmsClassName} context)
+        protected void Entry(${map.FSM.fsmClassName} context)
         {
 
             ${context} ctxt = context.getOwner();                
     <#list state.entryActions as action>
-    	<#include SMCJavaTemplate-Action>
+    	<#include "SMCJavaTemplate-Action.fmtl">
     </#list>
     		return;
         }
 </#if>        
 
-<#if state.exitActions && state.exitActions.size > 0>
+<#if (state.exitActions?? && state.exitActions?size > 0)>
 
-        protected void Exit(${map.FSM.fmsClassName} context)
+        protected void Exit(${map.FSM.fsmClassName} context)
         {
 
             ${context} ctxt = context.getOwner();                
     <#list state.exitActions as action>
-    	<#include SMCJavaTemplate-Action>
+    	<#include "SMCJavaTemplate-Action.fmtl">
     </#list>
     		return;
         }
@@ -76,14 +78,14 @@
 			static 
 			{
 				_transitions = new HashMap();
-        <#if>
+        </#if>
 
-	<#list map.FMS.transitions as transition>
+	<#list map.FSM.transitions as transition>
 			_transitions.put("${transition.name}",
 			
-			<#if state.transitions.contains(transition)
+			<#if state.transitions?seq_contains(transition) >
 				statemap.State.TRANSITION_DEFINED_LOCALLY)
-			<#elseif map.defaultState && map.defaultState.transitions.contains(transition)>
+			<#elseif map.defaultState?? && map.defaultState.transitions?seq_contains(transition)>
 				statemap.State.TRANSITION_DEFINED_DEFAULT)
 			<#else>
 				statemap.State.TRANSITION_UNDEFINED)

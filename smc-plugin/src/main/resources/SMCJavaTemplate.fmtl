@@ -6,7 +6,7 @@
 
 ${rawSource}
 
-<#if packageName>
+<#if packageName??>
 	package ${packageName}
 </#if>
 
@@ -14,7 +14,7 @@ ${rawSource}
 
 <#list fsm.imports as import>
 	import ${import};
-</#for>
+</#list>
 
 <#if reflectFlag>
 	import java.util.HashMap;
@@ -39,17 +39,17 @@ ${rawSource}
             public Logger getLog() {return log;}
 
         // Generate the context class' constructor.
-        ${_accessLevel}  ${fsmClassName}(${context} owner)
+        ${accessLevel}  ${fsmClassName}(${context} owner)
         {
-        	super(${getCleanStartState});
+        	super(${generator.cleanStartState});
         	_owner= owner;
         <#if reflectFlag>
 
             <#if genericFlag>
                     _transitions = new TreeSet<String>();
-            <#else
+            <#else>
                     _transitions = new TreeSet();
-            <#/if>
+            </#if>
 
             <#list transitions as trans>
                 _transitions.add("${trans.name}");
@@ -63,7 +63,7 @@ ${rawSource}
         // Generate the second constructor which allows the
         // initial state to be dynamically set. Overrides the
         // %start specifier.
-        ${_accessLevel}  ${fsmClassName}(${context} owner, State initState)
+        ${accessLevel}  ${fsmClassName}(${context} owner, State initState)
             {
                 super (initState);
                 _owner = owner;
@@ -72,9 +72,9 @@ ${rawSource}
 
     <#if genericFlag>
             _transitions = new TreeSet<String>();
-    <#else
+    <#else>
             _transitions = new TreeSet();
-    <#/if>
+    </#if>
 
     <#list transitions as trans>
         _transitions.add("${trans.name}");
@@ -97,35 +97,35 @@ ${rawSource}
             }
 <#list transitions as trans>
 
-	<#if !trans.isDefault>
+	<#if !trans.default>
 					public 
 	
-	<#if syncFlag>
+		<#if syncFlag>
 				synchronized 
-	</#if>
+		</#if>
 
                 void ${trans.name}(
-    <#list trans.parameters as param>
+    	<#list trans.parameters as param>
     	${param.type} ${param.name}
-    	<#if param != trans.parameters.last>
+    		<#if param != trans.parameters?last>
     		,
-    	</#if>
-     </#list>
+    		</#if>
+     	</#list>
 		)
 			{
 
 				// Save away the transition name in case it is
 				// need in an UndefinedTransitionException.
 				_transition = "${trans.name}";
-				getState().${trans.name}(this,;
-				${"(this
-	<#list trans.parameters as param>
+				getState().${trans.name}(this,
+		<#list trans.parameters as param>
 				,${param.name}
-	</#list>
+		</#list>
 				);
 				_transition = "";
 				return;
 			}
+	</#if>
 </#list>
         // If serialization is turned on, then generate a
         // setOwner method which allows the application class
@@ -214,7 +214,7 @@ ${rawSource}
 </#if>
 
             @SuppressWarnings("serial") 
-            ${_accessLevel} static abstract class ${context} extends statemap.State
+            ${accessLevel} static abstract class ${context} extends statemap.State
             {
             
 
@@ -238,7 +238,7 @@ ${rawSource}
         protected void Exit( ${fsmClassName} context) {}
 
 <#list transitions as trans>
-	<#if !tran.isDefault>
+	<#if !trans.default>
                protected void ${trans.name}( ${fsmClassName} context
 		<#list trans.parameters as param>
 				, ${param.type} ${param.name}
@@ -276,7 +276,7 @@ ${rawSource}
             }
 
 <#list maps as map>
-            <#include "SMCJavaTemplate-map.fmtl>
+            <#include "SMCJavaTemplate-map.fmtl">
 </#list>
 
 <#if serialFlag>

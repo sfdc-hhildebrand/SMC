@@ -5,28 +5,28 @@
 	</#list>
 	)
     	{
-    <#if transition.hasCtxtReference>
+    <#if transition.hasCtxtReference()>
     		ctxt = context.getOwner();
     </#if>		
 			if (log.isTraceEnabled())
 			{
-        		log.trace("TRANSITION   : (${transition.signature})[${context.name}]");
-		        log.trace("LEAVING STATE   : ${map.name}.${state.name}[${context.name}]");
+        		log.trace("TRANSITION   : (${transition.signature()})[${context}]");
+		        log.trace("LEAVING STATE   : ${map.name}.${transition.state.name}[${context}]");
         	}
 
 
 	<#list transition.guards as guard>
 		<#include "SMCJavaTemplate-Guard.fmtl">
-	</#if>
+	</#list>
         
 
         // If all guards have a condition, then create a final
         // "else" clause which passes control to the default
         // transition. Pass all arguments into the default
         // transition.
-	<#if transition.guards.count > 0 and !transition.hasGuardless)
+	<#if (transition.guards?size > 0 && !transition.guardless)>
 
-		<#if transition.guards.count==1>
+		<#if (transition.guards?size==1)>
 			}
         </#if>
 

@@ -102,6 +102,7 @@ public final class SmcOptions
                       final boolean genericFlag,
                       final String accessLevel,
                       final String templateName,
+                      final String templateDirectory,
                       final String templateSuffix)
     {
         _srcfileBase = srcfileBase;
@@ -120,6 +121,7 @@ public final class SmcOptions
         _genericFlag = genericFlag;
         _accessLevel = accessLevel;
 	    _templateName = templateName;
+	    _templateDirectory = templateDirectory;
 	    _templateSuffix = templateSuffix;
     } // end f SmcOptions(...)
 
@@ -285,6 +287,15 @@ public final class SmcOptions
 		return (_templateSuffix);
 	} // end of templateName()
 
+
+	/**
+	 * Returns the directory to search for template based generation.
+	 * @return the directory to search for template based generation.
+	 */
+	public String templateDirectory()
+	{
+		return _templateDirectory;
+	}
 	//
     // end of Get methods.
     //-----------------------------------------------------------
@@ -345,6 +356,11 @@ public final class SmcOptions
 
 	// Used this suffix for the generated classes.
 	private final String _templateSuffix;
+
+	// Use this directory to search for template files
+	private String _templateDirectory;
+
+
 } // end of class SmcOptions
 
 //

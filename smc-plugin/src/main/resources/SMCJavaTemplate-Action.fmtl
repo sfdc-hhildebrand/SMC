@@ -1,0 +1,15 @@
+<#if action.emptyStateStack>
+        context.emptyStateStack();
+<#else>
+    <#if !action.static>
+          ctxt.
+    </#if>
+    ${action.name}(
+    <#list action.arguments as arg>
+        ${arg}
+        <#if action.arguments?last != arg>
+            ,
+        </#if>
+    </#list>
+            )   ;
+</#if>

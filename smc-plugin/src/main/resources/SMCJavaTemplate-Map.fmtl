@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 List<SmcTransition> definedDefaultTransitions;
         SmcState defaultState = map.getDefaultState();
         String context = map.getFSM().getContext();
@@ -31,9 +33,9 @@ ${accessLevel} static abstract class ${map.name}
         //
 
 <#list map.states as state>
-        public static final ${map.name}_${state.className} ${state.getInstanceName} =
+        public static final ${map.name}_${state.className} ${state.instanceName} =
         	new ${map.name}_${state.className}("${map.name}.${state.className}",map.nextStateId()),
-<#/list>
+</#list>
 
         // Create a default state as well.
         @SuppressWarnings("unused")
@@ -52,8 +54,8 @@ ${accessLevel} static abstract class ${map.name}
 
         // If -reflect was specified, then output the
         // getTransitions() abstract method.
-<#if reflectFlag}
-	<#if genericFlag}
+<#if reflectFlag>
+	<#if genericFlag>
 		public Map<String, Integer> getTransitions() {            return (_transitions); }
     <#else>
 		public Map getTransitions() {            return (_transitions); }
@@ -67,7 +69,7 @@ ${accessLevel} static abstract class ${map.name}
         }
 
 
-		<#if map.defaultState>
+		<#if map.defaultState??>
 			<#list map.defaultState.transitions as transition>
 				<#include "SMCJavaTemplate-Transition.fmtl">
 			</#list>
@@ -77,16 +79,16 @@ ${accessLevel} static abstract class ${map.name}
         // Member data.
         //
 
-<#if reflectFlag}
+<#if reflectFlag>
             //---------------------------------------------------
             // Statics.
             //
             
-	<#if genericFlag}
+	<#if genericFlag>
 			private static Map<String, Integer> _transitions;
     <#else>
 			private static Map _transitions;
-    <#if>
+    </#if>
       		
     
 
@@ -95,18 +97,18 @@ ${accessLevel} static abstract class ${map.name}
             static
             {
             	
-	<#if genericFlag}
+	<#if genericFlag>
                 _transitions = new HashMap<String, Integer>();
 	<#else>
                 _transitions = new HashMap();
-    <#if>
+    </#if>
 
 	<#list map.transitions as transition>
 
                 _transitions.put("${transition.name}",
-		<#if map.defaultState && map.defaultState.transitions.contains(transition)>
+		<#if map.defaultState?? && map.defaultState.transitions?seq_contains(transition)>
 							statemap.State.TRANSITION_DEFINED_DEFAULT);
-		<#else
+		<#else>
 							statemap.State.TRANSITION_UNDEFINED);
 		</#if>
 			

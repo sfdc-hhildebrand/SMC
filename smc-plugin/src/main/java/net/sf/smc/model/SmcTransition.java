@@ -392,10 +392,9 @@ public final class SmcTransition
     	return this.getName().equals("Default");
     }
     
-    public boolean hasGuardless()
+    public boolean isGuardless()
     {
     // Loop through the guards and print each one.
-    	boolean nullCondition=false;
         Iterator<SmcGuard> git;
         SmcGuard guard;
         for (git = _guards.iterator();
@@ -407,11 +406,11 @@ public final class SmcTransition
             // Count up the guards with no condition.
             if (guard.getCondition().length() == 0)
             {
-                nullCondition = true;
+	            return true;
             }
 
         }
-        return nullCondition;
+        return false;
     }
 
 //---------------------------------------------------------------
