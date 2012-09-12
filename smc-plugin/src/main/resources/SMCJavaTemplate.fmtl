@@ -23,13 +23,14 @@ ${rawSource}
 	import java.util.TreeSet;
 </#if>
 
+<@compress single_line=true>
         ${accessLevel} class  ${fsmClassName}
             extends statemap.FSMContext
 
 <#if serialFlag>
     implements java.io.Serializable
 </#if>
-
+</@compress>
         {
         private final static Logger log = LoggerFactory.getLogger(${fsmClassName}.class);
         //---------------------------------------------------------------
@@ -59,10 +60,11 @@ ${rawSource}
 
         }
 
-
+<#--
         // Generate the second constructor which allows the
         // initial state to be dynamically set. Overrides the
         // %start specifier.
+-->
         ${accessLevel}  ${fsmClassName}(${context} owner, State initState)
             {
                 super (initState);
@@ -83,14 +85,17 @@ ${rawSource}
 </#if>
         }
 
-
+<#--
         // Generate the start abstract method which requires
         // executes the initial state's entry actions.
+-->
+<@compress single_line=true>
         public 
 <#if syncFlag>
             synchronized 
 </#if>
         void enterStartState()
+</@compress>
             {
                 getState().Entry(this);
                 return;
@@ -98,7 +103,8 @@ ${rawSource}
 <#list transitions as trans>
 
 	<#if !trans.default>
-					public 
+<@compress single_line=true>
+        public
 	
 		<#if syncFlag>
 				synchronized 
@@ -112,24 +118,31 @@ ${rawSource}
     		</#if>
      	</#list>
 		)
+</@compress>
 			{
 
 				// Save away the transition name in case it is
 				// need in an UndefinedTransitionException.
 				_transition = "${trans.name}";
-				getState().${trans.name}(this,
+<@compress single_line=true>
+				getState().${trans.name}(this
 		<#list trans.parameters as param>
 				,${param.name}
 		</#list>
 				);
+</@compress>
+
 				_transition = "";
 				return;
 			}
 	</#if>
 </#list>
+
+<#--
         // If serialization is turned on, then generate a
         // setOwner method which allows the application class
         // to restore its ownership of the FSM.
+-->
 
 <#if serialFlag>
 		// Also output the valueOf method in case developers
@@ -140,14 +153,14 @@ ${rawSource}
 			}
 </#if>
 
-        public ${context} State getState() throws statemap.StateUndefinedException
+        public ${context}State getState() throws statemap.StateUndefinedException
             {
                 if (_state == null)
                 {
             		throw(
             			new statemap.StateUndefinedException());
                 }
-        		return ((${context} State) _state);
+        		return ((${context}State) _state);
             }
 
             protected ${context} getOwner()
@@ -169,13 +182,12 @@ ${rawSource}
             }
 
 <#if reflectFlag>
-        public 
-            ${context}State[] getStates()
+        public ${context}State[] getStates()
                 {
                     return (_States);
                 }
 	<#if genericFlag>
-		public Set	<String> getTransitions()
+		public Set<String> getTransitions()
 	<#else>
 		public Set	getTransitions()
 	</#if>
@@ -193,7 +205,7 @@ ${rawSource}
 <#if reflectFlag>
     
 	<#if genericFlag>
-              final Set  <String> _transitions;
+              final Set<String> _transitions;
     <#else>
               final Set  _transitions;
 	</#if>
@@ -202,8 +214,7 @@ ${rawSource}
 <#if serialFlag || _reflectFlag >
             String mapName;
 
-            transient private static ${context}
-            State[] _States = {
+            transient private static ${context}State[] _States = {
 	<#list maps as map>
 		<#list map.states as state>
 			${map.name}.${state.className},
@@ -214,7 +225,7 @@ ${rawSource}
 </#if>
 
             @SuppressWarnings("serial") 
-            ${accessLevel} static abstract class ${context} extends statemap.State
+            ${accessLevel} static abstract class ${context}State extends statemap.State
             {
             
 
@@ -229,7 +240,7 @@ ${rawSource}
 </#if>
 
         // Constructor.
-        protected ${context} State(String name, int id)
+        protected ${context}State(String name, int id)
                 {
                     super (name, id);
                 }
@@ -239,11 +250,13 @@ ${rawSource}
 
 <#list transitions as trans>
 	<#if !trans.default>
+<@compress single_line=true>
                protected void ${trans.name}( ${fsmClassName} context
 		<#list trans.parameters as param>
 				, ${param.type} ${param.name}
 		</#list>
                 )
+</@compress>
 				{
 
 		// If this method is reached, that means that

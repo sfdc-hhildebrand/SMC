@@ -210,6 +210,7 @@ public class Plugin extends AbstractMojo {
         project.addCompileSourceRoot(srcDir.getAbsolutePath());
         project.addCompileSourceRoot(targetDir.getAbsolutePath());
 
+
         ArrayList<String> sources = new ArrayList<String>();
         for (File source : srcDir.listFiles(new FilenameFilter() {
             @Override

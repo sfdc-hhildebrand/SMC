@@ -1,12 +1,3 @@
-import java.util.HashMap;
-
-SmcMap map = state.getMap();
-        String context = map.getFSM().getContext();
-        String ${fsmClassName} = map.getFSM().get${fsmClassName}();
-        String ${map.name} = map.getName();
-        String ${state.name} = state.getClassName();
-        List<SmcAction> actions;
-        String indent2;
 
          @SuppressWarnings("serial")
         private static final class ${map.name}_${state.name} extends ${map.name}_Default
