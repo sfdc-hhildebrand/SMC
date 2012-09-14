@@ -199,9 +199,11 @@ public final class SmcFreeMarkerGenerator extends SmcCodeGenerator {
 			for (SmcGuard guard: transition.getGuards())
 			{
 				if (guard.getTransType()  == TransType.TRANS_PUSH  )
+					requiresPush= true;
 					return true;
 			}
 	    }
+	    requiresPush =false;
 	    return false;
 
     }

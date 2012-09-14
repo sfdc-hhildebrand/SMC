@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>smc.app</artifactId>
 	<packaging>pom</packaging>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<groupId>com.salesforce.smc</groupId>
 	<name>State Machine Compiler</name>
 	<description>A state machine compiler for Java, with Maven plugin</description>

@@ -211,7 +211,7 @@ ${rawSource}
 	</#if>
 </#if>
 
-<#if serialFlag || _reflectFlag >
+<#if serialFlag || reflectFlag >
             String mapName;
 
             transient private static ${context}State[] _States = {
@@ -288,6 +288,7 @@ ${rawSource}
             //
             }
 
+// generating code for each map
 <#list maps as map>
             <#include "SMCJavaTemplate-map.fmtl">
 </#list>

@@ -668,8 +668,243 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("        }");
     }
 
-   
-    /**
+
+	/**
+	 * Emits Java code for the FSM map.
+	 * @param map emit Java code for this map.
+	 */
+	@Override
+	public void visit(SmcMap map)
+	{
+		List<SmcTransition> definedDefaultTransitions;
+		SmcState defaultState = map.getDefaultState();
+		String context = map.getFSM().getContext();
+		String mapName = map.getName();
+		List<SmcState> states = map.getStates();
+
+		// Initialize the default transition list to all the
+		// default state's transitions.
+		if (defaultState != null)
+		{
+			definedDefaultTransitions =
+					defaultState.getTransitions();
+		}
+		else
+		{
+			definedDefaultTransitions =
+					new ArrayList<SmcTransition>();
+		}
+
+		// Declare the map class. Declare it abstract to prevent
+		// its instantiation.
+		_source.println();
+		_source.print("    ");
+		_source.print(_accessLevel);
+		_source.print(" static abstract class ");
+		_source.println(mapName);
+		_source.println("    {");
+		_source.println(
+				               "    //-----------------------------------------------------------");
+		_source.println("    // Member methods.");
+		_source.println("    //");
+		_source.println();
+		_source.println(
+				               "    //-----------------------------------------------------------");
+		_source.println("    // Member data.");
+		_source.println("    //");
+		_source.println();
+		_source.println(
+				               "        //-------------------------------------------------------");
+		_source.println("        // Constants.");
+		_source.println("        //");
+
+		// Declare each of the state class member data.
+		//  qiulang --- modify to remove defult
+		for (SmcState state: states)
+		{
+			_source.print("        public static final ");
+			//_source.print(mapName);
+			//_source.print("_Default.");
+			_source.print(mapName);
+			_source.print('_');
+			_source.print(state.getClassName());
+			_source.print(' ');
+			_source.print(state.getInstanceName());
+			_source.println(" =");
+			_source.print("            new ");
+			//_source.print(mapName);
+			//_source.print("_Default.");
+			_source.print(mapName);
+			_source.print('_');
+			_source.print(state.getClassName());
+			_source.print("(\"");
+			_source.print(mapName);
+			_source.print('.');
+			_source.print(state.getClassName());
+			_source.print("\", ");
+			_source.print(map.getNextStateId());
+			_source.println(");");
+		}
+
+		// Create a default state as well.
+		_source.println("        @SuppressWarnings(\"unused\")");
+		_source.print("        private static final ");
+		_source.print(mapName);
+		_source.println("_Default Default =");
+		_source.print("            new ");
+		_source.print(mapName);
+		_source.print("_Default(\"");
+		_source.print(mapName);
+		_source.println(".Default\", -1);");
+		_source.println();
+
+		// End of the map class.
+		_source.println("    }");
+		_source.println();
+
+		// Declare the map default state class.
+		_source.println("    @SuppressWarnings(\"serial\")");
+		_source.print("    protected static class ");
+		_source.print(mapName);
+		_source.println("_Default");
+		_source.print("        extends ");
+		_source.print(context);
+		_source.println("State");
+		_source.println("    {");
+		_source.println(
+				               "    //-----------------------------------------------------------");
+		_source.println("    // Member methods.");
+		_source.println("    //");
+		_source.println();
+
+		// If -reflect was specified, then output the
+		// getTransitions() abstract method.
+		if (_reflectFlag == true)
+		{
+			_source.print("        ");
+			_source.print("public Map");
+			if (_genericFlag == true)
+			{
+				_source.print("<String, Integer>");
+			}
+			_source.println(" getTransitions()");
+			_source.println("        {");
+			_source.println(
+					               "            return (_transitions);");
+			_source.println("        }");
+			_source.println();
+		}
+
+		// Generate the constructor.
+		_source.print("        protected ");
+		_source.print(mapName);
+		_source.println("_Default(String name, int id)");
+		_source.println("        {");
+		_source.println("            super (name, id);");
+		_source.println("        }");
+
+		// Declare the user-defined default transitions first.
+		_indent = "        ";
+		for (SmcTransition trans: definedDefaultTransitions)
+		{
+			trans.accept(this);
+		}
+
+		/* qiulang --- comment out to remove the "double nested class"
+				// Have each state now generate its code. Each state
+				// class is an inner class.
+				for (SmcState state: states)
+				{
+					state.accept(this);
+				}
+				*/
+
+		_source.println(
+				               "    //-----------------------------------------------------------");
+		_source.println("    // Member data.");
+		_source.println("    //");
+
+		// If -reflect was specified, then generate the
+		// _transitions map.
+		if (_reflectFlag == true)
+		{
+			List<SmcTransition> allTransitions =
+					map.getFSM().getTransitions();
+			String transName;
+			String transDefinition;
+
+			_source.println();
+			_source.println(
+					               "        //---------------------------------------------------");
+			_source.println("        // Statics.");
+			_source.println("        //");
+			_source.print("        ");
+			_source.print("private static Map");
+			if (_genericFlag == true)
+			{
+				_source.print("<String, Integer>");
+			}
+			_source.println(" _transitions;");
+			_source.println();
+
+			// Now output the transition collection's
+			// initialization.
+			_source.println("        static");
+			_source.println("        {");
+			_source.print("            ");
+			_source.print("_transitions = new HashMap");
+			if (_genericFlag == true)
+			{
+				_source.print("<String, Integer>");
+			}
+			_source.println("();");
+
+			// Now place all transition names and states into the
+			// map.
+			for (SmcTransition transition: allTransitions)
+			{
+				transName = transition.getName();
+
+				// If the transition is defined in this map's
+				// default state, then the value is 2.
+				if (definedDefaultTransitions.contains(
+						                                      transition) == true)
+				{
+					transDefinition =
+							"statemap.State.TRANSITION_DEFINED_DEFAULT";
+				}
+				// Otherwise the value is 0 - undefined.
+				else
+				{
+					transDefinition =
+							"statemap.State.TRANSITION_UNDEFINED";
+				}
+
+				_source.print("            ");
+				_source.print("_transitions.put(\"");
+				_source.print(transName);
+				_source.print("\", ");
+				_source.print(transDefinition);
+				_source.println(");");
+			}
+			_source.println("        }");
+		}
+
+		// The map class has been defined.
+		_source.println("    }");
+		/* qiulang --- generate the actual state classes here
+				   to remove the "double nested classes".
+				*/
+
+		for (SmcState state: states)
+		{
+			state.accept(this);
+		}
+
+		return;
+	} // end of visit(SmcMap)
+
+	/**
      * Emits Java code for this FSM state.
      * @param state emits Java code for this state.
      */

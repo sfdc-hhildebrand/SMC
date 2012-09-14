@@ -1,7 +1,7 @@
 
 <@compress single_line=true>
 	protected void ${transition.name}( ${map.FSM.fsmClassName} context
-	<#list transition.parameters as parameter>
+	<#list transition.parameters as param>
 		, ${param.type} ${param.name}
 	</#list>
 	)

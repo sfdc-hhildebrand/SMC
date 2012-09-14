@@ -1,5 +1,8 @@
+			// generated code for ${map.name}
 
-${accessLevel} static abstract class ${map.name}
+${accessLevel} import java.util.HashMap;
+
+            static abstract class ${map.name}
 {
      //-----------------------------------------------------------
      // Member methods.
@@ -14,7 +17,7 @@ ${accessLevel} static abstract class ${map.name}
 
 <#list map.states as state>
         public static final ${map.name}_${state.className} ${state.instanceName} =
-        	new ${map.name}_${state.className}("${map.name}.${state.className}",map.nextStateId());
+        	new ${map.name}_${state.className}("${map.name}.${state.className}",${state_index});
 </#list>
 
         // Create a default state as well.
