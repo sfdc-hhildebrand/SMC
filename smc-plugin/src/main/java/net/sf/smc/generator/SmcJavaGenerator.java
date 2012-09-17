@@ -34,9 +34,6 @@
 
 package net.sf.smc.generator;
 
-import net.sf.smc.model.*;
-import net.sf.smc.model.SmcElement.TransType;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +41,17 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import net.sf.smc.model.SmcAction;
+import net.sf.smc.model.SmcElement;
+import net.sf.smc.model.SmcElement.TransType;
+import net.sf.smc.model.SmcFSM;
+import net.sf.smc.model.SmcGuard;
+import net.sf.smc.model.SmcMap;
+import net.sf.smc.model.SmcParameter;
+import net.sf.smc.model.SmcState;
+import net.sf.smc.model.SmcTransition;
+import net.sf.smc.model.SmcVisitor;
 
 /**
  * Visits the abstract syntax tree, emitting Java code.
@@ -113,13 +121,13 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.print(_srcfileBase);
         _source.println(".sm");
         _source.println(" */");
-
+        _source.println();
 
         // Dump out the raw source code, if any.
         if (rawSource != null && rawSource.length() > 0)
         {
             _source.println(rawSource);
-    
+            _source.println();
         }
 
         // If a package has been specified, generate the
@@ -129,7 +137,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.print("package ");
             _source.print(packageName);
             _source.println(";");
-    
+            _source.println();
         }
 
         _source.println("import org.slf4j.*;");
@@ -150,7 +158,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println("import java.util.TreeSet;");
         }
 
-
+        _source.println();
 
         // The context clas contains all the state classes as
         // inner classes, so generate the context first rather
@@ -174,10 +182,10 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("//---------------------------------------------------------------");
         _source.println("// Member methods.");
         _source.println("//");
-
+        _source.println();
 
         _source.println("    public Logger getLog() {return log;}");
-
+        _source.println();
 
         // The state name "map::state" must be changed to
         // "map.state".
@@ -205,7 +213,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.print("        super (");
         _source.print(javaState);
         _source.println(");");
-
+        _source.println();
         _source.println("        _owner = owner;");
 
         // If reflection code is added, then instantiate the
@@ -216,7 +224,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         }
 
         _source.println("    }");
-
+        _source.println();
 
         // Generate the second constructor which allows the
         // initial state to be dynamically set. Overrides the
@@ -232,7 +240,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("State initState)");
         _source.println("    {");
         _source.println("        super (initState);");
-
+        _source.println();
         _source.println("        _owner = owner;");
 
         // If reflection code is added, then instantiate the
@@ -243,7 +251,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         }
 
         _source.println("    }");
-
+        _source.println();
 
         // Generate the start abstract method which requires
         // executes the initial state's entry actions.
@@ -257,7 +265,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("        getState().Entry(this);");
         _source.println("        return;");
         _source.println("    }");
-
+        _source.println();
 
         // Generate the default transition methods.
         for (SmcTransition trans: transitions)
@@ -310,7 +318,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
 
                 _source.println("        return;");
                 _source.println("    }");
-        
+                _source.println();
             }
         }
 
@@ -330,7 +338,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println(
                 "        return (_States[stateId]);");
             _source.println("    }");
-    
+            _source.println();
         }
 
         // getState() method.
@@ -347,12 +355,12 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println(
             "                new statemap.StateUndefinedException());");
         _source.println("        }");
-
+        _source.println();
         _source.print("        return ((");
         _source.print(context);
         _source.println("State) _state);");
         _source.println("    }");
-
+        _source.println();
 
         // getOwner() method.
         _source.print("    protected ");
@@ -361,7 +369,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("    {");
         _source.println("        return (_owner);");
         _source.println("    }");
-
+        _source.println();
 
         // setOwner() method.
         _source.print("    public void setOwner(");
@@ -378,10 +386,10 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("        {");
         _source.println("            _owner = owner;");
         _source.println("        }");
-
+        _source.println();
         _source.println("        return;");
         _source.println("    }");
-
+        _source.println();
 
         if (_reflectFlag == true)
         {
@@ -392,7 +400,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println("    {");
             _source.println("        return (_States);");
             _source.println("    }");
-    
+            _source.println();
 
             // getTransitions() method.
             _source.print("    public Set");
@@ -404,7 +412,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println("    {");
             _source.println("        return (_transitions);");
             _source.println("    }");
-    
+            _source.println();
         }
 
         // Declare member data.
@@ -412,7 +420,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             "//---------------------------------------------------------------");
         _source.println("// Member data.");
         _source.println("//");
-
+        _source.println();
         _source.print("    transient private ");
         _source.print(context);
         _source.println(" _owner;");
@@ -456,12 +464,12 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
                 }
             }
 
-    
+            _source.println();
             _source.println("    };");
         }
 
         // Declare the abstract state class.
-
+        _source.println();
         _source.println("    @SuppressWarnings(\"serial\")");
         _source.print("    ");
         _source.print(_accessLevel);
@@ -474,7 +482,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             "    //-----------------------------------------------------------");
         _source.println("    // Member methods.");
         _source.println("    //");
-
+        _source.println();
 
         // Abstract method to obtain the a state's supported
         // transitions.
@@ -487,7 +495,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
                 _source.print("<String, Integer>");
             }
             _source.println(" getTransitions();");
-    
+            _source.println();
         }
 
         // Constructor.
@@ -497,14 +505,14 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("        {");
         _source.println("            super (name, id);");
         _source.println("        }");
-
+        _source.println();
         _source.print("        protected void Entry(");
         _source.print(fsmClassName);
         _source.println(" context) {}");
         _source.print("        protected void Exit(");
         _source.print(fsmClassName);
         _source.println(" context) {}");
-
+        _source.println();
 
         // Generate the default transition definitions.
         for (SmcTransition trans: transitions)
@@ -536,7 +544,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
                 _source.println("            Default(context);");
 
                 _source.println("        }");
-        
+                _source.println();
             }
         }
 
@@ -566,7 +574,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("        }");
 
         // End of state class.
-
+        _source.println();
         _source.println(
             "    //-----------------------------------------------------------");
         _source.println("    // Member data.");
@@ -589,12 +597,12 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             if (requiresPush) {
                 generateWritePushSupport(context);
             }
-    
+            _source.println();
             _source.println("        ostream.writeInt(_state.getId());");
-    
+            _source.println();
             _source.println("        return;");
             _source.println("    }");
-    
+            _source.println();
             _source.print("    private void readObject(");
             _source.println("java.io.ObjectInputStream istream)");
             _source.println("        throws java.io.IOException");
@@ -602,12 +610,12 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             if (requiresPush) {
                 generateReadPushSupport();
             }
-    
+            _source.println();
             _source.println("        _state = _States[istream.readInt()];");
-    
+            _source.println();
             _source.println("        return;");
             _source.println("    }");
-    
+            _source.println();
         }
 
         if (requiresPush) {
@@ -617,7 +625,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         // End of context class.
         _source.println("}");
 
-
+        _source.println();
         _source.println("/*");
         _source.println(" * Local variables:");
         _source.println(" *  buffer-read-only: t");
@@ -632,9 +640,9 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.print("            ");
         _source.println("(_stateStack == null ? 0 : _stateStack.size());");
         _source.println("        int i;");
-
+        _source.println();
         _source.println("        ostream.writeInt(size);");
-
+        _source.println();
         _source.println("        for (i = 0; i < size; ++i)");
         _source.println("        {");
         _source.println("            ostream.writeInt(");
@@ -646,9 +654,9 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
 
     private void generateReadPushSupport() {
         _source.println("        int size;");
-
+        _source.println();
         _source.println("        size = istream.readInt();");
-
+        _source.println();
         _source.println("        if (size == 0)");
         _source.println("        {");
         _source.println("            _stateStack = null;");
@@ -656,10 +664,10 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("        else");
         _source.println("        {");
         _source.println("            int i;");
-
+        _source.println();
         _source.println("            _stateStack =");
         _source.println("                new java.util.Stack<statemap.State>();");
-
+        _source.println();
         _source.println("            for (i = 0; i < size; ++i)");
         _source.println("            {");
         _source.print("                _stateStack.add(i, _States[");
@@ -668,243 +676,242 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("        }");
     }
 
+    /**
+     * Emits Java code for the FSM map.
+     * @param map emit Java code for this map.
+     */
+    @Override
+    public void visit(SmcMap map) 
+    {
+        List<SmcTransition> definedDefaultTransitions;
+        SmcState defaultState = map.getDefaultState();
+        String context = map.getFSM().getContext();
+        String mapName = map.getName();
+        List<SmcState> states = map.getStates();
 
-	/**
-	 * Emits Java code for the FSM map.
-	 * @param map emit Java code for this map.
-	 */
-	@Override
-	public void visit(SmcMap map)
-	{
-		List<SmcTransition> definedDefaultTransitions;
-		SmcState defaultState = map.getDefaultState();
-		String context = map.getFSM().getContext();
-		String mapName = map.getName();
-		List<SmcState> states = map.getStates();
+        // Initialize the default transition list to all the
+        // default state's transitions.
+        if (defaultState != null)
+        {
+            definedDefaultTransitions =
+                defaultState.getTransitions();
+        }
+        else
+        {
+            definedDefaultTransitions =
+                new ArrayList<SmcTransition>();
+        }
 
-		// Initialize the default transition list to all the
-		// default state's transitions.
-		if (defaultState != null)
-		{
-			definedDefaultTransitions =
-					defaultState.getTransitions();
-		}
-		else
-		{
-			definedDefaultTransitions =
-					new ArrayList<SmcTransition>();
-		}
+        // Declare the map class. Declare it abstract to prevent
+        // its instantiation.
+        _source.println();
+        _source.print("    ");
+        _source.print(_accessLevel);
+        _source.print(" static abstract class ");
+        _source.println(mapName);
+        _source.println("    {");
+        _source.println(
+            "    //-----------------------------------------------------------");
+        _source.println("    // Member methods.");
+        _source.println("    //");
+        _source.println();
+        _source.println(
+            "    //-----------------------------------------------------------");
+        _source.println("    // Member data.");
+        _source.println("    //");
+        _source.println();
+        _source.println(
+            "        //-------------------------------------------------------");
+        _source.println("        // Constants.");
+        _source.println("        //");
 
-		// Declare the map class. Declare it abstract to prevent
-		// its instantiation.
-		_source.println();
-		_source.print("    ");
-		_source.print(_accessLevel);
-		_source.print(" static abstract class ");
-		_source.println(mapName);
-		_source.println("    {");
-		_source.println(
-				               "    //-----------------------------------------------------------");
-		_source.println("    // Member methods.");
-		_source.println("    //");
-		_source.println();
-		_source.println(
-				               "    //-----------------------------------------------------------");
-		_source.println("    // Member data.");
-		_source.println("    //");
-		_source.println();
-		_source.println(
-				               "        //-------------------------------------------------------");
-		_source.println("        // Constants.");
-		_source.println("        //");
+        // Declare each of the state class member data.
+        //  qiulang --- modify to remove defult
+        for (SmcState state: states)
+        {
+            _source.print("        public static final ");
+            //_source.print(mapName);
+            //_source.print("_Default.");
+            _source.print(mapName);
+            _source.print('_');
+            _source.print(state.getClassName());
+            _source.print(' ');
+            _source.print(state.getInstanceName());
+            _source.println(" =");
+            _source.print("            new ");
+            //_source.print(mapName);
+            //_source.print("_Default.");
+            _source.print(mapName);
+            _source.print('_');
+            _source.print(state.getClassName());
+            _source.print("(\"");
+            _source.print(mapName);
+            _source.print('.');
+            _source.print(state.getClassName());
+            _source.print("\", ");
+            _source.print(map.getNextStateId());
+            _source.println(");");
+        }
 
-		// Declare each of the state class member data.
-		//  qiulang --- modify to remove defult
-		for (SmcState state: states)
-		{
-			_source.print("        public static final ");
-			//_source.print(mapName);
-			//_source.print("_Default.");
-			_source.print(mapName);
-			_source.print('_');
-			_source.print(state.getClassName());
-			_source.print(' ');
-			_source.print(state.getInstanceName());
-			_source.println(" =");
-			_source.print("            new ");
-			//_source.print(mapName);
-			//_source.print("_Default.");
-			_source.print(mapName);
-			_source.print('_');
-			_source.print(state.getClassName());
-			_source.print("(\"");
-			_source.print(mapName);
-			_source.print('.');
-			_source.print(state.getClassName());
-			_source.print("\", ");
-			_source.print(map.getNextStateId());
-			_source.println(");");
-		}
+        // Create a default state as well.
+        _source.println("        @SuppressWarnings(\"unused\")");
+        _source.print("        private static final ");
+        _source.print(mapName);
+        _source.println("_Default Default =");
+        _source.print("            new ");
+        _source.print(mapName);
+        _source.print("_Default(\"");
+        _source.print(mapName);
+        _source.println(".Default\", -1);");
+        _source.println();
 
-		// Create a default state as well.
-		_source.println("        @SuppressWarnings(\"unused\")");
-		_source.print("        private static final ");
-		_source.print(mapName);
-		_source.println("_Default Default =");
-		_source.print("            new ");
-		_source.print(mapName);
-		_source.print("_Default(\"");
-		_source.print(mapName);
-		_source.println(".Default\", -1);");
-		_source.println();
+        // End of the map class.
+        _source.println("    }");
+        _source.println();
 
-		// End of the map class.
-		_source.println("    }");
-		_source.println();
+        // Declare the map default state class.
+        _source.println("    @SuppressWarnings(\"serial\")");
+        _source.print("    protected static class ");
+        _source.print(mapName);
+        _source.println("_Default");
+        _source.print("        extends ");
+        _source.print(context);
+        _source.println("State");
+        _source.println("    {");
+        _source.println(
+            "    //-----------------------------------------------------------");
+        _source.println("    // Member methods.");
+        _source.println("    //");
+        _source.println();
 
-		// Declare the map default state class.
-		_source.println("    @SuppressWarnings(\"serial\")");
-		_source.print("    protected static class ");
-		_source.print(mapName);
-		_source.println("_Default");
-		_source.print("        extends ");
-		_source.print(context);
-		_source.println("State");
-		_source.println("    {");
-		_source.println(
-				               "    //-----------------------------------------------------------");
-		_source.println("    // Member methods.");
-		_source.println("    //");
-		_source.println();
+        // If -reflect was specified, then output the
+        // getTransitions() abstract method.
+        if (_reflectFlag == true)
+        {
+            _source.print("        ");
+            _source.print("public Map");
+            if (_genericFlag == true)
+            {
+                _source.print("<String, Integer>");
+            }
+            _source.println(" getTransitions()");
+            _source.println("        {");
+            _source.println(
+                "            return (_transitions);");
+            _source.println("        }");
+            _source.println();
+        }
 
-		// If -reflect was specified, then output the
-		// getTransitions() abstract method.
-		if (_reflectFlag == true)
-		{
-			_source.print("        ");
-			_source.print("public Map");
-			if (_genericFlag == true)
-			{
-				_source.print("<String, Integer>");
-			}
-			_source.println(" getTransitions()");
-			_source.println("        {");
-			_source.println(
-					               "            return (_transitions);");
-			_source.println("        }");
-			_source.println();
-		}
+        // Generate the constructor.
+        _source.print("        protected ");
+        _source.print(mapName);
+        _source.println("_Default(String name, int id)");
+        _source.println("        {");
+        _source.println("            super (name, id);");
+        _source.println("        }");
 
-		// Generate the constructor.
-		_source.print("        protected ");
-		_source.print(mapName);
-		_source.println("_Default(String name, int id)");
-		_source.println("        {");
-		_source.println("            super (name, id);");
-		_source.println("        }");
+        // Declare the user-defined default transitions first.
+        _indent = "        ";
+        for (SmcTransition trans: definedDefaultTransitions)
+        {
+            trans.accept(this);
+        }
 
-		// Declare the user-defined default transitions first.
-		_indent = "        ";
-		for (SmcTransition trans: definedDefaultTransitions)
-		{
-			trans.accept(this);
-		}
+        /* qiulang --- comment out to remove the "double nested class"
+        // Have each state now generate its code. Each state
+        // class is an inner class.
+        for (SmcState state: states)
+        {
+            state.accept(this);
+        }
+        */
 
-		/* qiulang --- comment out to remove the "double nested class"
-				// Have each state now generate its code. Each state
-				// class is an inner class.
-				for (SmcState state: states)
-				{
-					state.accept(this);
-				}
-				*/
+        _source.println(
+            "    //-----------------------------------------------------------");
+        _source.println("    // Member data.");
+        _source.println("    //");
 
-		_source.println(
-				               "    //-----------------------------------------------------------");
-		_source.println("    // Member data.");
-		_source.println("    //");
+        // If -reflect was specified, then generate the
+        // _transitions map.
+        if (_reflectFlag == true)
+        {
+            List<SmcTransition> allTransitions =
+                map.getFSM().getTransitions();
+            String transName;
+            String transDefinition;
 
-		// If -reflect was specified, then generate the
-		// _transitions map.
-		if (_reflectFlag == true)
-		{
-			List<SmcTransition> allTransitions =
-					map.getFSM().getTransitions();
-			String transName;
-			String transDefinition;
+            _source.println();
+            _source.println(
+                "        //---------------------------------------------------");
+            _source.println("        // Statics.");
+            _source.println("        //");
+            _source.print("        ");
+            _source.print("private static Map");
+            if (_genericFlag == true)
+            {
+                _source.print("<String, Integer>");
+            }
+            _source.println(" _transitions;");
+            _source.println();
 
-			_source.println();
-			_source.println(
-					               "        //---------------------------------------------------");
-			_source.println("        // Statics.");
-			_source.println("        //");
-			_source.print("        ");
-			_source.print("private static Map");
-			if (_genericFlag == true)
-			{
-				_source.print("<String, Integer>");
-			}
-			_source.println(" _transitions;");
-			_source.println();
+            // Now output the transition collection's
+            // initialization.
+            _source.println("        static");
+            _source.println("        {");
+            _source.print("            ");
+            _source.print("_transitions = new HashMap");
+            if (_genericFlag == true)
+            {
+                _source.print("<String, Integer>");
+            }
+            _source.println("();");
 
-			// Now output the transition collection's
-			// initialization.
-			_source.println("        static");
-			_source.println("        {");
-			_source.print("            ");
-			_source.print("_transitions = new HashMap");
-			if (_genericFlag == true)
-			{
-				_source.print("<String, Integer>");
-			}
-			_source.println("();");
+            // Now place all transition names and states into the
+            // map.
+            for (SmcTransition transition: allTransitions)
+            {
+                transName = transition.getName();
 
-			// Now place all transition names and states into the
-			// map.
-			for (SmcTransition transition: allTransitions)
-			{
-				transName = transition.getName();
+                // If the transition is defined in this map's
+                // default state, then the value is 2.
+                if (definedDefaultTransitions.contains(
+                        transition) == true)
+                {
+                    transDefinition =
+                        "statemap.State.TRANSITION_DEFINED_DEFAULT";
+                }
+                // Otherwise the value is 0 - undefined.
+                else
+                {
+                    transDefinition =
+                        "statemap.State.TRANSITION_UNDEFINED";
+                }
 
-				// If the transition is defined in this map's
-				// default state, then the value is 2.
-				if (definedDefaultTransitions.contains(
-						                                      transition) == true)
-				{
-					transDefinition =
-							"statemap.State.TRANSITION_DEFINED_DEFAULT";
-				}
-				// Otherwise the value is 0 - undefined.
-				else
-				{
-					transDefinition =
-							"statemap.State.TRANSITION_UNDEFINED";
-				}
+                _source.print("            ");
+                _source.print("_transitions.put(\"");
+                _source.print(transName);
+                _source.print("\", ");
+                _source.print(transDefinition);
+                _source.println(");");
+            }
+            _source.println("        }");
+        }
 
-				_source.print("            ");
-				_source.print("_transitions.put(\"");
-				_source.print(transName);
-				_source.print("\", ");
-				_source.print(transDefinition);
-				_source.println(");");
-			}
-			_source.println("        }");
-		}
+        // The map class has been defined.
+        _source.println("    }");
+        /* qiulang --- generate the actual state classes here
+           to remove the "double nested classes".
+        */
+        
+        for (SmcState state: states)
+        {
+            state.accept(this);
+        }
+        
+        return;
+    } // end of visit(SmcMap)
 
-		// The map class has been defined.
-		_source.println("    }");
-		/* qiulang --- generate the actual state classes here
-				   to remove the "double nested classes".
-				*/
-
-		for (SmcState state: states)
-		{
-			state.accept(this);
-		}
-
-		return;
-	} // end of visit(SmcMap)
-
-	/**
+    /**
      * Emits Java code for this FSM state.
      * @param state emits Java code for this state.
      */
@@ -920,7 +927,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         String indent2;
 
         // Declare the inner state class.
-
+        _source.println();
         _source.println("    @SuppressWarnings(\"serial\")");
         _source.print("    private static final class ");
         _source.print(mapName);
@@ -934,7 +941,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             "    //-------------------------------------------------------");
         _source.println("    // Member methods.");
         _source.println("    //");
-
+        _source.println();
 
         // If -reflect was specified, then generate the
         // getTransitions() methods.
@@ -951,7 +958,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.print("            ");
             _source.println("return (_transitions);");
             _source.println("        }");
-    
+            _source.println();
         }
 
         // Add the constructor.
@@ -969,7 +976,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         actions = state.getEntryActions();
         if (actions != null && actions.size() > 0)
         {
-    
+            _source.println();
             _source.print("        protected void Entry(");
             _source.print(fsmClassName);
             _source.println(" context)");
@@ -979,7 +986,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.print("                ");
             _source.print(context);
             _source.println(" ctxt = context.getOwner();");
-    
+            _source.println();
 
             // Generate the actions associated with this code.
             indent2 = _indent;
@@ -999,7 +1006,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         actions = state.getExitActions();
         if (actions != null && actions.size() > 0)
         {
-    
+            _source.println();
             _source.print("        protected void Exit(");
             _source.print(fsmClassName);
             _source.println(" context)");
@@ -1009,7 +1016,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.print("            ");
             _source.print(context);
             _source.println(" ctxt = context.getOwner();");
-    
+            _source.println();
 
             // Generate the actions associated with this code.
             indent2 = _indent;
@@ -1031,7 +1038,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             transition.accept(this);
         }
 
-
+        _source.println();
         _source.println(
             "    //-------------------------------------------------------");
         _source.println("    // Member data.");
@@ -1063,7 +1070,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
                     new ArrayList<SmcTransition>();
             }
 
-    
+            _source.println();
             _source.println(
                 "        //---------------------------------------------------");
             _source.println("        // Statics.");
@@ -1075,7 +1082,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
                 _source.print("<String, Integer>");
             }
             _source.println(" _transitions;");
-    
+            _source.println();
 
             // Now output the transition collection's
             // initialization.
@@ -1155,7 +1162,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         Iterator<SmcGuard> git;
         SmcGuard guard;
 
-
+        _source.println();
         _source.print(_indent);
         _source.print("protected void ");
         _source.print(transName);
@@ -1186,7 +1193,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println(" ctxt = context.getOwner();");
         }
 
-
+        _source.println();
         
         _source.print(_indent);
         _source.println("    if (log.isTraceEnabled())");
@@ -1264,13 +1271,13 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println(");");
             _source.print(_indent);
             _source.println("    }");
-    
+            _source.println();
         }
         // Need to add a final newline after a multiguard block.
         else if (_guardCount > 1)
         {
-    
-    
+            _source.println();
+            _source.println();
         }
 
         _source.print(_indent);
@@ -1350,7 +1357,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             {
                 // No, this is not the first transition but it
                 // does have a condition. Use an "else if".
-        
+                _source.println();
                 _source.print(_indent);
                 _source.print("    else if (");
                 _source.print(condition);
@@ -1362,7 +1369,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             {
                 // This is not the first transition and it has
                 // no condition.
-        
+                _source.println();
                 _source.print(_indent);
                 _source.println("    else");
                 _source.print(_indent);
@@ -1437,7 +1444,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println(".Exit(context) [\" + context.getName() + \"]\");");
             _source.print(indent2);
             _source.println("}");
-    
+            _source.println();
 
             _source.print(indent2);
             _source.println(
@@ -1455,7 +1462,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println(".Exit(context) [\" + context.getName() + \"]\");");
             _source.print(indent2);
             _source.println("    }");
-    
+            _source.println();
 
         }
 
@@ -1498,7 +1505,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println(" [\" + context.getName() + \"]\");");
             _source.print(_indent);
             _source.println("}");
-    
+            _source.println();
 
             _indent = indent4;
         }
@@ -1599,7 +1606,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println(" [\" + context.getName() + \"]\");");
             _source.print(_indent);
             _source.println("}");
-    
+            _source.println();
 
             _indent = indent4;
         }
@@ -1659,7 +1666,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
              transType == TransType.TRANS_PUSH)
         {
 
-    
+            _source.println();
             _source.print(indent3);
             _source.println("if (log.isTraceEnabled())");
             _source.print(indent3);
@@ -1672,13 +1679,13 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println(".Entry(context) [\" + context.getName() + \"]\");");
             _source.print(indent3);
             _source.println("}");
-    
+            _source.println();
 
             _source.print(indent3);
             _source.println(
                 "(context.getState()).Entry(context);");
 
-    
+            _source.println();
             _source.print(indent3);
             _source.println("if (log.isTraceEnabled())");
             _source.print(indent3);
@@ -1701,7 +1708,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         {
             _source.print(indent2);
             _source.println('}');
-    
+            _source.println();
         }
 
         // If there is a transition associated with the pop, then
@@ -1712,7 +1719,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         {
             String popArgs = guard.getPopArgs();
 
-    
+            _source.println();
             _source.print(indent2);
             _source.print("context.");
             _source.print(endStateName);
@@ -1815,7 +1822,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.print("<String>");
         }
         _source.println("();");
-
+        _source.println();
 
         // Initialize the transition set.
         for (SmcTransition trans: transitions)
