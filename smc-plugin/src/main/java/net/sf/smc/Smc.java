@@ -545,6 +545,23 @@ public final class Smc
 		            argsConsumed = 2;
 	            }
             }
+            else if (args[i].startsWith("-pd") == true)
+            {
+	            if (_supportsOption(PACKAGE_DIR_FLAG) == false)
+	            {
+		            retcode = false;
+		            _errorMsg =
+				            _targetLanguage.name() +
+						            " does not support " +
+						            PACKAGE_DIR_FLAG +
+						            ".";
+	            }
+	            else
+	            {
+		            _packageDir = true;
+		            argsConsumed = 1;
+	            }
+            }
             else if (args[i].startsWith( "-ca" ) == true)
             {
                 // -cast should be followed by a cast type.
@@ -1341,7 +1358,7 @@ public final class Smc
                                  _accessLevel,
 		                                _templateName,
 		                         _templateDirectory,
-		                                _templateSuffix);
+		                                _templateSuffix, _packageDir);
 
         // Create the header file name and generator -
         // if the language uses a header file.
@@ -1705,6 +1722,7 @@ public final class Smc
 	private static String _templateName;
 	private static String _templateSuffix;
 	private static String _templateDirectory;
+	private static boolean _packageDir;
 
 	//-----------------------------------------------------------
     // Constants.
@@ -1742,6 +1760,7 @@ public final class Smc
 	private static final String TEMPLATE_SUFFIX_FLAG = "-tsuffix";
 	private static final String TEMPLATE_DIR_FLAG = "-tdir";
 	private static final String TEMPLATE_NAME_FLAG = "-template";
+	private static final String PACKAGE_DIR_FLAG = "-pdir";
 
 	private static final String PACKAGE_LEVEL = "package";
 
@@ -2010,6 +2029,7 @@ public final class Smc
 	    _optionMap.put( TEMPLATE_SUFFIX_FLAG, languages );
 	    _optionMap.put(TEMPLATE_DIR_FLAG, languages);
 	    _optionMap.put(TEMPLATE_NAME_FLAG, languages);
+	    _optionMap.put(PACKAGE_DIR_FLAG, languages);
 	    // Define the allowed access level keywords for each language
         // which supports the -access option.
         List<String> accessLevels;

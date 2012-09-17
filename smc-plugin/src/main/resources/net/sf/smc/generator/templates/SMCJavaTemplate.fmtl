@@ -290,7 +290,7 @@ ${rawSource}
 
 // generating code for each map
 <#list maps as map>
-            <#include "SMCJavaTemplate-map.fmtl">
+            <#include "SMCJavaTemplate-Map.fmtl">
 </#list>
 
 <#if serialFlag>

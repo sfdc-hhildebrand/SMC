@@ -34,10 +34,15 @@
 
 package net.sf.smc.generator;
 
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.cache.FileTemplateLoader;
+import freemarker.cache.MultiTemplateLoader;
+import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import net.sf.smc.Smc;
 import net.sf.smc.model.*;
 import net.sf.smc.model.SmcElement.TransType;
 
@@ -73,13 +78,16 @@ public final class SmcFreeMarkerGenerator extends SmcCodeGenerator {
     //
 
 	private final SmcOptions _options;
-    /**
+	private boolean shouldPackageDir;
+
+	/**
      * Creates a Java code generator for the given options.
      * @param options The target code generator options.
      */
     public SmcFreeMarkerGenerator(final SmcOptions options)
     {
 	    super( options, options.templateSuffix() );
+	    shouldPackageDir = options.packageDir();
 	    _options = options;
 
     } // end of SmcFMGenerator(SmcOptions)
@@ -113,7 +121,37 @@ public final class SmcFreeMarkerGenerator extends SmcCodeGenerator {
 
 	    try
 	    {
-		    cfg.setDirectoryForTemplateLoading( new File( _options.templateDirectory() ) );
+		    FileTemplateLoader ftl1;
+		    TemplateLoader[] loaders;
+		    //ClassTemplateLoader ctl = new ClassTemplateLoader( getClass(), "/net/sf/smc/generator/templates/" );
+		    ClassTemplateLoader ctl = new ClassTemplateLoader( getClass(), "templates" );
+		    ClassTemplateLoader ctl2 = new ClassTemplateLoader( getClass(), "/" );
+		    ClassTemplateLoader ctl3 = new ClassTemplateLoader( Smc.class, "" );
+
+		    if (_options.templateDirectory() != null && !_options.templateDirectory().isEmpty())
+		    {
+			     ftl1 = new FileTemplateLoader(new File( _options.templateDirectory()));
+                 loaders= new TemplateLoader[]{ ftl1, ctl,ctl2,ctl3 };
+		    }
+		    else if (_options.srcDirectory() != null)
+		    {
+			    ftl1 = new FileTemplateLoader(new File( _options.srcDirectory()));
+			    loaders = new TemplateLoader[]{ ftl1, ctl,ctl2,ctl3 };
+		    }
+		    else
+		    {
+			    loaders = new TemplateLoader[]{ ctl,ctl2,ctl3 };
+
+		    }
+
+
+		    MultiTemplateLoader mtl = new MultiTemplateLoader( loaders );
+		    //System.out.println(mtl.findTemplateSource("SMCJavaTemplate.fmtl"));
+		    //System.out.println(mtl.findTemplateSource("SMCJavaTemplate-Map.fmtl"));
+		    cfg.setTemplateLoader( mtl );
+		    cfg.setLocalizedLookup(false);
+
+
 
 		    cfg.setObjectWrapper( new DefaultObjectWrapper() );
 
@@ -169,8 +207,11 @@ public final class SmcFreeMarkerGenerator extends SmcCodeGenerator {
      */
     @Override
     protected Object appendPackageName(String path, String packageName) {
+	    if (shouldPackageDir)
         return (path.endsWith(File.separator) ? path : path + File.separator)
                + packageName.replace('.', File.separatorChar) + File.separator;
+	    else
+		    return path;
     }
     
     public String getCleanStartState()

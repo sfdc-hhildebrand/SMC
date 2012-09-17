@@ -103,7 +103,8 @@ public final class SmcOptions
                       final String accessLevel,
                       final String templateName,
                       final String templateDirectory,
-                      final String templateSuffix)
+                      final String templateSuffix,
+                      final boolean packageDir)
     {
         _srcfileBase = srcfileBase;
         _targetfileBase = targetfileBase;
@@ -123,6 +124,7 @@ public final class SmcOptions
 	    _templateName = templateName;
 	    _templateDirectory = templateDirectory;
 	    _templateSuffix = templateSuffix;
+	    _packageDir = packageDir;
     } // end f SmcOptions(...)
 
     //
@@ -296,6 +298,14 @@ public final class SmcOptions
 	{
 		return _templateDirectory;
 	}
+
+	/**
+	 * Return true if we should generate the results in a directory package
+	 */
+	public boolean packageDir()
+	{
+		return _packageDir;
+	}
 	//
     // end of Get methods.
     //-----------------------------------------------------------
@@ -341,7 +351,7 @@ public final class SmcOptions
     private final boolean _reflectFlag;
 
     // This flag is true when synchronization code is to be
-    // generated.
+    // generated
     private final boolean _syncFlag;
 
     // This flag is true when reflection is to use a
@@ -359,6 +369,9 @@ public final class SmcOptions
 
 	// Use this directory to search for template files
 	private String _templateDirectory;
+
+	// Generate output in package directory
+	private boolean _packageDir;
 
 
 } // end of class SmcOptions

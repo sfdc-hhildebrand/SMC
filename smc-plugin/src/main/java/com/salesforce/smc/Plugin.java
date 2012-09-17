@@ -181,17 +181,21 @@ public class Plugin extends AbstractMojo {
 	/***
 	 * template file to use
 	 */
-	private String template;
+	private String template= null;
 
 	/**
 	 * Template directory to use
 	 */
-	private String templateDirectory;
+	private String templateDirectory= null;
 
 	/**
 	 * template stuffix to use
 	 */
-	private String templateSuffix;
+	private String templateSuffix = null;
+	/**
+	 * Whether we should generate a package directory
+	 */
+	 private boolean packageDirectory = false;
 
 	@Override
     public void execute() throws MojoExecutionException {
@@ -272,6 +276,11 @@ public class Plugin extends AbstractMojo {
 		{
 			args.add("-tsuffix");
 			args.add(templateSuffix);
+		}
+
+		if (packageDirectory)
+		{
+			args.add("-pdir");
 		}
 
 		args.add("-d");
@@ -451,5 +460,10 @@ public class Plugin extends AbstractMojo {
 	public void setTemplateSuffix(String templateSuffix)
 	{
 		this.templateSuffix = templateSuffix;
+	}
+
+	public void setPackageDirectory(boolean packageDirectory)
+	{
+		this.packageDirectory = packageDirectory;
 	}
 }
