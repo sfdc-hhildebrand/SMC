@@ -34,6 +34,9 @@
 
 package net.sf.smc.parser;
 
+import net.sf.smc.model.*;
+import net.sf.smc.model.SmcElement.TransType;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -43,14 +46,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import net.sf.smc.model.SmcAction;
-import net.sf.smc.model.SmcElement.TransType;
-import net.sf.smc.model.SmcFSM;
-import net.sf.smc.model.SmcGuard;
-import net.sf.smc.model.SmcMap;
-import net.sf.smc.model.SmcParameter;
-import net.sf.smc.model.SmcState;
-import net.sf.smc.model.SmcTransition;
 
 /**
  * Reads in a finite state machine definition from an input
@@ -1398,7 +1393,7 @@ public final class SmcParser
          */
         JS ("{0}_sm"),
 
-	    FREEMARKER ("{0}_sm");
+	    FREEMARKER ("{0}Context");
 
 
 	    //-----------------------------------------------------------
