@@ -1,6 +1,7 @@
+// start   SMCJavaTemplate-state for ${state.name}
 
-         @SuppressWarnings("serial")
-        private static final class ${map.name}_${state.name} extends ${map.name}_Default
+@SuppressWarnings("serial")
+        private static final class ${map.name}_${state.className} extends ${map.name}_Default       //begin state class
 		{	
             //-------------------------------------------------------
             // Member methods.
@@ -9,13 +10,13 @@
         
 <#if reflectFlag>
 	<#if genericFlag>
-            public Map<String, Integer> getTransitions(){ return _transitions };
+            public Map<String, Integer> getTransitions(){ return _transitions; }
     <#else>
-            public Map getTransitions(){ return _transitions };
+            public Map getTransitions(){ return _transitions; }
 	</#if>
 </#if>
 
-        private ${map.name}_${state.name}(String name, int id)
+        private ${map.name}_${state.className}(String name, int id)
         {
         	super(name,id);
         }
@@ -46,9 +47,11 @@
         }
 </#if>        
 
+            // start transitions for  state ${state.name}
 <#list state.transitions as transition>
 	<#include "SMCJavaTemplate-Transition.fmtl">
 </#list>
+            // end transitions for state ${state.name}
 
 //-------------------------------------------------------
 // Member data.
@@ -63,7 +66,6 @@
 			static 
 			{
 				_transitions = new HashMap<String,Integer>();
-			}
         <#else>
             private static Map  _transitions;
 			static 
@@ -72,16 +74,16 @@
         </#if>
 
 	<#list map.FSM.transitions as transition>
-			_transitions.put("${transition.name}",
-			
 			<#if state.transitions?seq_contains(transition) >
-				statemap.State.TRANSITION_DEFINED_LOCALLY)
+                _transitions.put("${transition.name}",statemap.State.TRANSITION_DEFINED_LOCALLY);
 			<#elseif map.defaultState?? && map.defaultState.transitions?seq_contains(transition)>
-				statemap.State.TRANSITION_DEFINED_DEFAULT)
+                _transitions.put("${transition.name}",statemap.State.TRANSITION_DEFINED_DEFAULT);
 			<#else>
-				statemap.State.TRANSITION_UNDEFINED)
+                _transitions.put("${transition.name}",statemap.State.TRANSITION_UNDEFINED);
 			</#if>
     </#list>
             }
 </#if>        
-}
+    }
+
+// end SMCJavaTemplate-State

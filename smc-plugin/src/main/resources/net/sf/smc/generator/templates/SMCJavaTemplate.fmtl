@@ -7,7 +7,7 @@
 ${rawSource}
 
 <#if packageName??>
-	package ${packageName}
+	package ${packageName};
 </#if>
 
         import org.slf4j.*;
@@ -21,6 +21,7 @@ ${rawSource}
 	import java.util.Map;
 	import java.util.Set;
 	import java.util.TreeSet;
+import statemap.*;
 </#if>
 
 <@compress single_line=true>
@@ -275,11 +276,11 @@ ${rawSource}
                 {
                     if (log.isTraceEnabled())
                     {
-                        log.trace("TRANSITION   : Default [" + context.getName() + "]")
+                        log.trace("TRANSITION   : Default [" + context.getName() + "]");
                     }
                     throw ( new statemap.TransitionUndefinedException("State: " +
 						context.getState().getName() +", Transition: " +
-            			 context.getTransition());
+            			 context.getTransition()));
                 }
 
         // End of state class.
@@ -303,7 +304,7 @@ ${rawSource}
 					ostream.writeInt(size);
 					for (i = 0; i < size; ++i)
 					{
-						ostream.writeInt(((${context} State) _stateStack.get(i)).getId());
+						ostream.writeInt(((${context}State) _stateStack.get(i)).getId());
 					}
     </#if>
                     ostream.writeInt(_state.getId());
@@ -341,7 +342,6 @@ ${rawSource}
                     return;
                 }
             
-        }
 </#if>
 
 <#if requiresPush>

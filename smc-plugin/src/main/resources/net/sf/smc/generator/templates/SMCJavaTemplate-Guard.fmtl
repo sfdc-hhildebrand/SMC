@@ -1,3 +1,5 @@
+// starts SMCJavaTemplate-guard
+
 <#if (transition.guards?size > 1)>
 
 	<#if transition.guards?first == guard && guard.condition?? && guard.condition != "">
@@ -27,10 +29,10 @@
         // fail.
 -->
 
-<#if (!guard.hasActions || !guard.loopback)>
-            ${context}State endState = ${guard.endStateScoped};
+<#if (guard.loopback)>
+            ${context}State endState = context.getState();
 <#else>
-			${context}State endState = context.getState();
+            ${context}State endState = ${guard.endStateScoped};
 </#if>
 
 <#--
@@ -46,13 +48,13 @@
 <#if guard.transType.name() == "TRANS_POP" || (!guard.loopback)>
             if (log.isTraceEnabled())
             {
-                    log.trace("BEFORE EXIT     : ${map.name}.${transition.state.name}.Exit(context) [" + context.getName() + "]");
+                    log.trace("BEFORE EXIT     : ${map.name}.${transition.state.className}.Exit(context) [" + context.getName() + "]");
             }
             (context.getState()).Exit(context);
  
             if (log.isTraceEnabled())
             {
-                    log.trace("AFTER EXIT     : ${map.name}.${transition.state.name}.Exit(context) [" + context.getName() + "]");
+                    log.trace("AFTER EXIT     : ${map.name}.${transition.state.className}.Exit(context) [" + context.getName() + "]");
             }
 </#if>
 
@@ -63,7 +65,7 @@
              if (log.isTraceEnabled())
              {
              	<@compress single_line=true>
-             	log.trace("ENTER transition: ${map.name}.${state.name}.${transition.name}(
+             	log.trace("ENTER transition: ${map.name}.${state.className}.${transition.name}(
 	<#list transition.parameters as param>
              		${param.type} ${param.name}
 		<#if transition.parameters?last != param>
@@ -124,7 +126,7 @@
 				if (log.isTraceEnabled())
 				 {
 			<@compress single_line=true>
-					log.trace("EXIT transition: ${map.name}.${state.name}.${transition.name}(
+					log.trace("EXIT transition: ${map.name}.${state.className}.${transition.name}(
 		<#list transition.parameters as param>
 						${param.type} ${param.name}
 			<#if transition.parameters?last != param>
@@ -170,20 +172,18 @@
 -->	
 				if (log.isTraceEnabled())
 				{
-					log.trace("BEFORE ENTRY     : ${map.name}.${guard.transition.state.name}.Entry(context)[" + context.getName() + "]");
+					log.trace("BEFORE ENTRY     : ${map.name}.${guard.transition.state.className}.Entry(context)[" + context.getName() + "]");
 				}
 				
 				(context.getState()).Entry(context);
 	
 				if (log.isTraceEnabled())
 				{
-					log.trace("AFTER ENTRY     : ${map.name}.${guard.transition.state.name}.Entry(context)[" + context.getName() + "]");
+					log.trace("AFTER ENTRY     : ${map.name}.${guard.transition.state.className}.Entry(context)[" + context.getName() + "]");
 				}
-				
-			}
-</#if>	
-<#if !noCatchFlag>
-	}
+</#if>
+<#if !noCatchFlag && guard.hasActions>
+    	}
 </#if>
 
 <#if (guard.transType.name() == "TRANS_POP" &&
@@ -196,5 +196,7 @@
         context.${guard.endStateScoped}(${guard.popArgs});
 </#if>
 <#if (transition.guards?size > 1)>
-}
+}      // end guard ifs
 </#if>
+
+// end SMCJavaTemplate-guard

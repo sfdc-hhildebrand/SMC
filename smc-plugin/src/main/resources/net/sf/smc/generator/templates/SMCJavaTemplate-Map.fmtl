@@ -1,9 +1,8 @@
-			// generated code for ${map.name}
+			// generated code for map ${map.name}, SMCJavaTemplate-Map
 
-${accessLevel} import java.util.HashMap;
 
-            static abstract class ${map.name}
-{
+    ${accessLevel}       static abstract class ${map.name}
+    {
      //-----------------------------------------------------------
      // Member methods.
      //
@@ -88,11 +87,11 @@ ${accessLevel} import java.util.HashMap;
 
 	<#list map.transitions as transition>
 
-                _transitions.put("${transition.name}",
+
 		<#if map.defaultState?? && map.defaultState.transitions?seq_contains(transition)>
-							statemap.State.TRANSITION_DEFINED_DEFAULT);
+            _transitions.put("${transition.name}",statemap.State.TRANSITION_DEFINED_DEFAULT);
 		<#else>
-							statemap.State.TRANSITION_UNDEFINED);
+            _transitions.put("${transition.name}",statemap.State.TRANSITION_UNDEFINED);
 		</#if>
 			
 	</#list>
@@ -105,4 +104,4 @@ ${accessLevel} import java.util.HashMap;
 	<#include "SMCJavaTemplate-State.fmtl">
 </#list>
         
-  
+ // end SMCJavaTemplate-Map

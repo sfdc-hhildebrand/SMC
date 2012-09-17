@@ -1,3 +1,4 @@
+// start SMCJavaTemplate-Transition for ${transition.name}
 
 <@compress single_line=true>
 	protected void ${transition.name}( ${map.FSM.fsmClassName} context
@@ -8,7 +9,7 @@
 </@compress>
     	{
     <#if transition.hasCtxtReference()>
-    		ctxt = context.getOwner();
+    		${context} ctxt = context.getOwner();
     </#if>		
 			if (log.isTraceEnabled())
 			{
@@ -44,8 +45,11 @@
         </#list>
 			);
 </@compress>
-        }
+        }   // has guards needs else
 	</#if>
 
 	return;
 }
+
+
+// end SMCJavaTemplate-Transition for ${transition.name}
