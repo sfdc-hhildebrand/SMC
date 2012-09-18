@@ -148,8 +148,10 @@ import statemap.*;
 -->
 
 <#if serialFlag>
+<#--
 		// Also output the valueOf method in case developers
 		// want to serialize manually.
+-->
 		public ${fsmClassName}State valueOf(int stateId) throws ArrayIndexOutOfBoundsException
 			{
 				return (_States[stateId]);

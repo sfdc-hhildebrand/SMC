@@ -163,7 +163,7 @@
 	
 				
 	
-<#if guard.transType.name() == "TRANS_SET" || (!guard.isLoopback) || guard.transType.name() == "TRANS_PUSH">
+<#if ((guard.transType.name() == "TRANS_SET" && (!guard.loopback)) || (guard.transType.name() == "TRANS_PUSH"))>
 <#--
 			// Perform the new guard.transition.state's enty actions.
 			// v. 1.0, beta 3: Not any more. The entry actions are
