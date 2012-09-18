@@ -30,9 +30,9 @@
 -->
 
 <#if (guard.loopback)>
-            ${context}State endState = context.getState();
+            ${fsmClassName}State endState = context.getState();
 <#else>
-            ${context}State endState = ${guard.endStateScoped};
+            ${fsmClassName}State endState = ${guard.endStateScoped};
 </#if>
 
 <#--

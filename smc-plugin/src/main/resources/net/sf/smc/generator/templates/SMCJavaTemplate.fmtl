@@ -148,20 +148,20 @@ import statemap.*;
 <#if serialFlag>
 		// Also output the valueOf method in case developers
 		// want to serialize manually.
-		public ${context}State valueOf(int stateId) throws ArrayIndexOutOfBoundsException
+		public ${fsmClassName}State valueOf(int stateId) throws ArrayIndexOutOfBoundsException
 			{
 				return (_States[stateId]);
 			}
 </#if>
 
-        public ${context}State getState() throws statemap.StateUndefinedException
+        public ${fsmClassName}State getState() throws statemap.StateUndefinedException
             {
                 if (_state == null)
                 {
             		throw(
             			new statemap.StateUndefinedException());
                 }
-        		return ((${context}State) _state);
+        		return ((${fsmClassName}State) _state);
             }
 
             protected ${context} getOwner()
@@ -183,7 +183,7 @@ import statemap.*;
             }
 
 <#if reflectFlag>
-        public ${context}State[] getStates()
+        public ${fsmClassName}State[] getStates()
                 {
                     return (_States);
                 }
@@ -215,7 +215,7 @@ import statemap.*;
 <#if serialFlag || reflectFlag >
             String mapName;
 
-            transient private static ${context}State[] _States = {
+            transient private static ${fsmClassName}State[] _States = {
 	<#list maps as map>
 		<#list map.states as state>
 			${map.name}.${state.className},
@@ -226,7 +226,7 @@ import statemap.*;
 </#if>
 
             @SuppressWarnings("serial") 
-            ${accessLevel} static abstract class ${context}State extends statemap.State
+            ${accessLevel} static abstract class ${fsmClassName}State extends statemap.State
             {
             
 
@@ -241,7 +241,7 @@ import statemap.*;
 </#if>
 
         // Constructor.
-        protected ${context}State(String name, int id)
+        protected ${fsmClassName}State(String name, int id)
                 {
                     super (name, id);
                 }
@@ -304,7 +304,7 @@ import statemap.*;
 					ostream.writeInt(size);
 					for (i = 0; i < size; ++i)
 					{
-						ostream.writeInt(((${context}State) _stateStack.get(i)).getId());
+						ostream.writeInt(((${fsmClassName}State) _stateStack.get(i)).getId());
 					}
     </#if>
                     ostream.writeInt(_state.getId());

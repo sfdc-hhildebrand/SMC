@@ -27,7 +27,7 @@
 
    @SuppressWarnings("serial")
    protected static class 
-        ${map.name}_Default  extends ${context}State
+        ${map.name}_Default  extends ${fsmClassName}State
     	{
             //-----------------------------------------------------------
             // Member methods.
