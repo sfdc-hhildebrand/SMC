@@ -39,8 +39,9 @@ import statemap.*;
         //
 
             public Logger getLog() {return log;}
-
+<#--
         // Generate the context class' constructor.
+-->
         ${accessLevel}  ${fsmClassName}(${context} owner)
         {
         	super(${generator.cleanStartState});
@@ -121,9 +122,10 @@ import statemap.*;
 		)
 </@compress>
 			{
-
+ <#--
 				// Save away the transition name in case it is
 				// need in an UndefinedTransitionException.
+-->
 				_transition = "${trans.name}";
 <@compress single_line=true>
 				getState().${trans.name}(this
@@ -213,7 +215,6 @@ import statemap.*;
 </#if>
 
 <#if serialFlag || reflectFlag >
-            String mapName;
 
             transient private static ${fsmClassName}State[] _States = {
 	<#list maps as map>
@@ -229,9 +230,10 @@ import statemap.*;
             ${accessLevel} static abstract class ${fsmClassName}State extends statemap.State
             {
             
-
+ <#--
         // Abstract method to obtain the a state's supported
         // transitions.
+ -->
 <#if reflectFlag>
 	<#if genericFlag>
             public abstract Map<String, Integer> getTransitions();
@@ -240,7 +242,9 @@ import statemap.*;
 	</#if>
 </#if>
 
+<#--
         // Constructor.
+-->
         protected ${fsmClassName}State(String name, int id)
                 {
                     super (name, id);
@@ -259,11 +263,12 @@ import statemap.*;
                 )
 </@compress>
 				{
-
+<#--
 		// If this method is reached, that means that
 		// this transition was passed to a state which
 		// does not define the transition. Call the
 		// state's default transition method.
+-->
 					Default(context);
 
 				}
@@ -284,9 +289,6 @@ import statemap.*;
                 }
 
         // End of state class.
-            //-----------------------------------------------------------
-            // Member data.
-            //
             }
 
 // generating code for each map

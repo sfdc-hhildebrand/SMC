@@ -19,7 +19,7 @@
         	new ${map.name}_${state.className}("${map.name}.${state.className}",${state_index});
 </#list>
 
-        // Create a default state as well.
+        <#--// Create a default state as well.  -->
         @SuppressWarnings("unused")
         private static final ${map.name}_Default Default = new ${map.name}_Default("${map.name}.Default",-1);
 }
@@ -33,9 +33,10 @@
             // Member methods.
             //
 
-
+<#--
         // If -reflect was specified, then output the
         // getTransitions() abstract method.
+-->
 <#if reflectFlag>
 	<#if genericFlag>
 		public Map<String, Integer> getTransitions() {            return (_transitions); }
@@ -73,9 +74,10 @@
     </#if>
       		
     
-
+<#--
             // Now output the transition collection's
             // initialization.
+-->
             static
             {
             	
