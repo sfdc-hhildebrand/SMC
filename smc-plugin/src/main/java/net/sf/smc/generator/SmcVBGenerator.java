@@ -2024,7 +2024,7 @@ public final class SmcVBGenerator
 // Added Francois Perrad to Contributors section for Python work.
 //
 // Revision 1.1  2005/02/21 15:23:02  charlesr
-// Modified isLoopback() method call to new signature due to moving
+// Modified isLoopback() method call to new getSignature due to moving
 // the method from SmcGuard to SmcCodeGenerator.
 //
 // Revision 1.0  2005/02/03 17:12:57  charlesr

@@ -13,7 +13,7 @@
     </#if>		
 			if (log.isTraceEnabled())
 			{
-        		log.trace("TRANSITION   : ${transition.signature()}[${context}]");
+        		log.trace("TRANSITION   : ${transition.signature}[${context}]");
 		        log.trace("LEAVING STATE   : ${map.name}.${transition.state.name}[${context}]");
         	}
 

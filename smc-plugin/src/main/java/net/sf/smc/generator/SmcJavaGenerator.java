@@ -928,13 +928,13 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
 
         // Declare the inner state class.
         _source.println();
-        _source.println("    @SuppressWarnings(\"serial\")");
+        _source.println( "    @SuppressWarnings(\"serial\")" );
         _source.print("    private static final class ");
         _source.print(mapName);
-        _source.print('_');
-        _source.println(stateName);
+        _source.print( '_' );
+        _source.println( stateName );
         _source.print("        extends ");
-        _source.print(mapName);
+        _source.print( mapName );
         _source.println("_Default");
         _source.println("    {");
         _source.println(
@@ -964,8 +964,8 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         // Add the constructor.
         _source.print("        private ");
         _source.print(mapName);
-        _source.print('_');
-        _source.print(stateName);
+        _source.print( '_' );
+        _source.print( stateName );
         _source.println("(String name, int id)");
         _source.println("        {");
         _source.println("            super (name, id);");
@@ -978,13 +978,13 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         {
             _source.println();
             _source.print("        protected void Entry(");
-            _source.print(fsmClassName);
+            _source.print( fsmClassName );
             _source.println(" context)");
             _source.println("            {");
 
             // Declare the "ctxt" local variable.
             _source.print("                ");
-            _source.print(context);
+            _source.print( context );
             _source.println(" ctxt = context.getOwner();");
             _source.println();
 
@@ -1074,7 +1074,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println(
                 "        //---------------------------------------------------");
             _source.println("        // Statics.");
-            _source.println("        //");
+            _source.println( "        //" );
             _source.print("        ");
             _source.print("private static Map");
             if (_genericFlag == true)
@@ -1176,9 +1176,9 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.print(", ");
             parameter.accept(this);
         }
-        _source.println(")");
+        _source.println( ")" );
 
-        _source.print(_indent);
+        _source.print( _indent );
         _source.println("{");
 
         // All transitions have a "ctxt" local variable.
@@ -1201,7 +1201,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         _source.println("    {");
         _source.print(_indent);
         _source.print("        log.trace(\"TRANSITION   : ");
-        _source.print(transition.signature());
+        _source.print(transition.getSignature());
         _source.println(" [\" + context.getName() + \"]\");");
         _source.print(_indent);
         _source.println("    }");
@@ -1446,21 +1446,21 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
             _source.println("}");
             _source.println();
 
-            _source.print(indent2);
+            _source.print( indent2 );
             _source.println(
-                "(context.getState()).Exit(context);");
+		                           "(context.getState()).Exit(context);" );
  
-            _source.print(_indent);
-            _source.println("    if (log.isTraceEnabled())");
-            _source.print(_indent);
-            _source.println("{");
+            _source.print( _indent );
+            _source.println( "    if (log.isTraceEnabled())" );
+            _source.print( _indent );
+            _source.println( "{" );
             _source.print(_indent);
             _source.print("        log.trace(\"AFTER EXIT      : ");
             _source.print(mapName);
             _source.print('.');
-            _source.print(stateName);
-            _source.println(".Exit(context) [\" + context.getName() + \"]\");");
-            _source.print(indent2);
+            _source.print( stateName );
+            _source.println( ".Exit(context) [\" + context.getName() + \"]\");" );
+            _source.print( indent2 );
             _source.println("    }");
             _source.println();
 
@@ -1667,18 +1667,18 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
         {
 
             _source.println();
-            _source.print(indent3);
-            _source.println("if (log.isTraceEnabled())");
-            _source.print(indent3);
-            _source.println("{");
+            _source.print( indent3 );
+            _source.println( "if (log.isTraceEnabled())" );
+            _source.print( indent3 );
+            _source.println( "{" );
             _source.print(indent3);
             _source.print("    log.trace(\"BEFORE ENTRY    : ");
             _source.print(mapName);
             _source.print('.');
-            _source.print(stateName);
-            _source.println(".Entry(context) [\" + context.getName() + \"]\");");
-            _source.print(indent3);
-            _source.println("}");
+            _source.print( stateName );
+            _source.println( ".Entry(context) [\" + context.getName() + \"]\");" );
+            _source.print( indent3 );
+            _source.println( "}" );
             _source.println();
 
             _source.print(indent3);
@@ -2005,7 +2005,7 @@ public final class SmcJavaGenerator extends SmcCodeGenerator {
 // Added Francois Perrad to Contributors section for Python work.
 //
 // Revision 1.1  2005/02/21 15:18:32  charlesr
-// Modified isLoopback() to new signature due to moving method from
+// Modified isLoopback() to new getSignature due to moving method from
 // SmcGuard to SmcCodeGenerator.
 // Corrected indentation for "loopbackFlag =" statement.
 // Declaring "boolean loopbackFlag" only if and where it is needed.

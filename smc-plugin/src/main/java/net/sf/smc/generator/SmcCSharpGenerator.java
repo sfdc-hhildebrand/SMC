@@ -2374,7 +2374,7 @@ public final class SmcCSharpGenerator
 // Added Francois Perrad to Contributors section for Python work.
 //
 // Revision 1.1  2005/02/21 15:10:36  charlesr
-// Modified isLoopback() to new signature.
+// Modified isLoopback() to new getSignature.
 //
 // Revision 1.0  2005/02/03 17:10:08  charlesr
 // Initial revision

@@ -363,9 +363,9 @@ public final class SmcTransition
     }
     
     /** 
-     * @return the transition signature.
+     * @return the transition getSignature.
      */
-    public String signature()
+    public String getSignature()
     {
         StringBuffer retval = new StringBuffer(512);
         String sep;
@@ -386,6 +386,7 @@ public final class SmcTransition
 
         return(retval.toString());
     }
+
     
     public boolean isDefault()
     {

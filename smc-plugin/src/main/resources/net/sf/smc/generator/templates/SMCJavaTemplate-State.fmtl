@@ -74,9 +74,9 @@
         </#if>
 
 	<#list map.FSM.transitions as transition>
-			<#if state.transitions?seq_contains(transition) >
+			<#if state.signatures?seq_contains(transition.signature) >
                 _transitions.put("${transition.name}",statemap.State.TRANSITION_DEFINED_LOCALLY);
-			<#elseif map.defaultState?? && map.defaultState.transitions?seq_contains(transition)>
+			<#elseif map.defaultState?? && map.defaultState.signatures?seq_contains(transition.signature)>
                 _transitions.put("${transition.name}",statemap.State.TRANSITION_DEFINED_DEFAULT);
 			<#else>
                 _transitions.put("${transition.name}",statemap.State.TRANSITION_UNDEFINED);
