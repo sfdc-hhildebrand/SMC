@@ -34,6 +34,8 @@
 
 package net.sf.smc.generator;
 
+import java.util.Map;
+
 /**
  * This passive, immutable class stores the SMC generator options
  * and an instance is passed to the generator constructors.
@@ -104,7 +106,8 @@ public final class SmcOptions
                       final String templateName,
                       final String templateDirectory,
                       final String templateSuffix,
-                      final boolean packageDir)
+                      final boolean packageDir,
+                      final Map<String,String> templateParams)
     {
         _srcfileBase = srcfileBase;
         _targetfileBase = targetfileBase;
@@ -125,6 +128,7 @@ public final class SmcOptions
 	    _templateDirectory = templateDirectory;
 	    _templateSuffix = templateSuffix;
 	    _packageDir = packageDir;
+	    _templateParams = templateParams;
     } // end f SmcOptions(...)
 
     //
@@ -306,7 +310,15 @@ public final class SmcOptions
 	{
 		return _packageDir;
 	}
-	//
+
+	/** return open ended set of template parameters
+	 *
+	 * @return  a map of parameters
+	 */
+	public Map<String,String> templateParams()
+	{
+		return _templateParams;
+	}	//
     // end of Get methods.
     //-----------------------------------------------------------
 
@@ -372,6 +384,8 @@ public final class SmcOptions
 
 	// Generate output in package directory
 	private boolean _packageDir;
+
+	private Map<String,String> _templateParams;
 
 
 } // end of class SmcOptions

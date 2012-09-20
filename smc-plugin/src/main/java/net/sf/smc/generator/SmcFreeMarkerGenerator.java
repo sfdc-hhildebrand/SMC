@@ -181,6 +181,7 @@ public final class SmcFreeMarkerGenerator extends SmcCodeGenerator {
 		    root.put("targetfileBase",_options.targetfileBase());
 		    root.put("templateDirectory",_options.templateName());
 		    root.put("templateSuffix",_options.templateSuffix());
+		    root.put("params",_options.templateParams());
 		    root.put( "fsm", fsm );
 		    root.put( "generator", this );
 
