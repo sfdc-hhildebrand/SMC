@@ -4,6 +4,7 @@
 	<#assign mapname = maps[0].name>
 <#else>
 	<#assign multimap=true>
+	<#assign mapname = "States">
 </#if>            
 
 
@@ -144,10 +145,39 @@ import statemap.*;
         		return ((${fsmClassName}State) _state);
             }
 
-            protected ${context} getOwner()
+        public ${mapname} getStateEnum() throws statemap.StateUndefinedException
+            {
+                if (_state == null)
+                {
+            		throw(
+            			new statemap.StateUndefinedException());
+                }
+        		return java.lang.Enum.valueOf(${mapname}.class,_state.getName());
+            }
+            
+        public void setState(${fsmClassName}State state)
+        {
+        	_state = state;
+        }
+
+        public void setStateEnum(${mapname} stateEnum)
+            {
+                if (stateEnum == null)
+                {
+                	_state=null;
+                }
+                else
+                {
+            
+        			setState(stateEnum.getState());
+        		}
+            }
+
+		protected ${context} getOwner()
             {
                 return (_owner);
             }
+
 
         public void setOwner(${context} owner)
             {
