@@ -1,3 +1,12 @@
+<#---   Setup some values -->
+<#if maps?size == 1>
+	<#assign multimap=false >
+	<#assign mapname = maps[0].name>
+<#else>
+	<#assign multimap=true>
+</#if>            
+
+
 /*
          * ex: set ro:
          * DO NOT EDIT.
@@ -17,6 +26,7 @@ ${rawSource}
 </#list>
 
 <#if reflectFlag>
+	import java.util.EnumMap;
 	import java.util.HashMap;
 	import java.util.Map;
 	import java.util.Set;
@@ -39,26 +49,21 @@ import statemap.*;
         //
 
             public Logger getLog() {return log;}
+            
+            
+        static public enum Transitions {
+            <#list transitions as trans>
+                ${trans.name} <#if transitions?last != trans>, </#if>
+            </#list>;
+        }
+
 <#--
         // Generate the context class' constructor.
 -->
         ${accessLevel}  ${fsmClassName}(${context} owner)
         {
-        	super(${generator.cleanStartState});
+        	super(${generator.cleanStartState}.getState());
         	_owner= owner;
-        <#if reflectFlag>
-
-            <#if genericFlag>
-                    _transitions = new TreeSet<String>();
-            <#else>
-                    _transitions = new TreeSet();
-            </#if>
-
-            <#list transitions as trans>
-                _transitions.add("${trans.name}");
-            </#list>
-
-        </#if>
 
         }
 
@@ -71,21 +76,9 @@ import statemap.*;
             {
                 super (initState);
                 _owner = owner;
-
-<#if reflectFlag>
-
-    <#if genericFlag>
-            _transitions = new TreeSet<String>();
-    <#else>
-            _transitions = new TreeSet();
-    </#if>
-
-    <#list transitions as trans>
-        _transitions.add("${trans.name}");
-    </#list>
-
-</#if>
         }
+
+        
 
 <#--
         // Generate the start abstract method which requires
@@ -141,23 +134,6 @@ import statemap.*;
 	</#if>
 </#list>
 
-<#--
-        // If serialization is turned on, then generate a
-        // setOwner method which allows the application class
-        // to restore its ownership of the FSM.
--->
-
-<#if serialFlag>
-<#--
-		// Also output the valueOf method in case developers
-		// want to serialize manually.
--->
-		public ${fsmClassName}State valueOf(int stateId) throws ArrayIndexOutOfBoundsException
-			{
-				return (_States[stateId]);
-			}
-</#if>
-
         public ${fsmClassName}State getState() throws statemap.StateUndefinedException
             {
                 if (_state == null)
@@ -186,20 +162,6 @@ import statemap.*;
                 return;
             }
 
-<#if reflectFlag>
-        public ${fsmClassName}State[] getStates()
-                {
-                    return (_States);
-                }
-	<#if genericFlag>
-		public Set<String> getTransitions()
-	<#else>
-		public Set	getTransitions()
-	</#if>
-                {
-                    return (_transitions);
-                }
-</#if>
 
     	//---------------------------------------------------------------
         // Member data.
@@ -207,49 +169,19 @@ import statemap.*;
 
         transient private ${context} _owner;
 
-<#if reflectFlag>
-    
-	<#if genericFlag>
-              final Set<String> _transitions;
-    <#else>
-              final Set  _transitions;
-	</#if>
-</#if>
-
-<#if serialFlag || reflectFlag >
-
-            transient private static ${fsmClassName}State[] _States = {
-	<#list maps as map>
-		<#list map.states as state>
-			${map.name}.${state.className},
-		</#list>
-	</#list>
-			};
-			
-</#if>
 
             @SuppressWarnings("serial") 
             ${accessLevel} static abstract class ${fsmClassName}State extends statemap.State
             {
             
- <#--
-        // Abstract method to obtain the a state's supported
-        // transitions.
- -->
-<#if reflectFlag>
-	<#if genericFlag>
-            public abstract Map<String, Integer> getTransitions();
-    <#else>
-            public abstract Map getTransitions();
-	</#if>
-</#if>
 
 <#--
         // Constructor.
 -->
-        protected ${fsmClassName}State(String name, int id)
+
+        protected ${fsmClassName}State(String name, Integer id)
                 {
-                    super (name, id);
+                    super (name,id);
                 }
         
         protected void Entry(${fsmClassName} context) {}
@@ -292,12 +224,72 @@ import statemap.*;
 
         // End of state class.
             }
+            
 
 // generating code for each map
+
+
+
 	<#assign master_state_index=0>
 <#list maps as map>
-            <#include "SMCJavaTemplate-Map.fmtl">
+            <#include "SMCJava15Template-Map.fmtl">
 </#list>
+
+<#if multimap>
+	   static ${accessLevel} enum States 
+	   {
+
+				INIT_STATE(initState)
+	<#assign state_index=0>
+	<#list maps as map>
+		<#list map.states as state>
+			<#assign state_index = state_index+1>
+				,${map.name}_${state.className}(${map.name}.${state.className}.getState())
+		</#list>
+	</#list>
+			;
+			
+			${fsmClassName}State stateInstance;
+		
+			States(${fsmClassName}State stateInstance)
+			{
+				this.stateInstance=stateInstance;
+			}			
+							
+				
+				
+			${accessLevel} ${fsmClassName}State getState()
+			{
+				return stateInstance;
+			}
+			
+			static  ${accessLevel} ${fsmClassName}State  getState(String label)
+			{
+				return java.lang.Enum.valueOf(${map.name}.class,label).getState();
+			}
+	
+			static ${accessLevel} ${fsmClassName} buildFSM(${context} owner, String initStateAsString)
+			{
+					States enumer=java.lang.Enum.valueOf(States.class,initStateAsString);
+					return buildFSM(owner,enumer);
+			}
+			
+			static ${accessLevel} ${fsmClassName}  buildFSM(${context} owner, States enumer)
+			{
+					${fsmClassName}State initState = enumer.getState();
+					return new ${fsmClassName}(owner,initState);
+			}
+	
+			${accessLevel} ${fsmClassName} buildFSM(${context} owner)
+			{
+				return buildFSM(owner,this);
+			}
+	
+		}
+		
+</#if>
+
+
 
 <#if serialFlag>
     private void writeObject(java.io.ObjectOutputStream ostream)
@@ -309,15 +301,15 @@ import statemap.*;
 					ostream.writeInt(size);
 					for (i = 0; i < size; ++i)
 					{
-						ostream.writeInt(((${fsmClassName}State) _stateStack.get(i)).getId());
+						ostream.writeObject(((${fsmClassName}State) _stateStack.get(i)).getName());
 					}
     </#if>
-                    ostream.writeInt(_state.getId());
+                    ostream.writeObject(_state.getName());
                     return;
                 }
             
             private void readObject(java.io.ObjectInputStream istream)
-                    throws java.io.IOException
+                    throws java.io.IOException, ClassNotFoundException
                 {
     <#if requiresPush>
 					int size;
@@ -337,12 +329,26 @@ import statemap.*;
 			
 						for (i = 0; i < size; ++i)
 						{
-							_stateStack.add(i, _States[istream.readInt()]);
+							${fsmClassName}State state;
+							String stateName = (String) istream.readObject();
+			<#if multimap>						
+							state = java.lang.Enum.valueOf(States.class,stateName).getState();
+						
+			<#else>
+							state = java.lang.Enum.valueOf(${mapname}.class,stateName).getState();
+			</#if>						
+							_stateStack.add(i, state);
 						}
 					}    
     </#if>
             
-                    _state = _States[istream.readInt()];
+							String stateName = (String) istream.readObject();
+			<#if multimap>						
+							_state = java.lang.Enum.valueOf(States.class,stateName).getState();
+						
+			<#else>
+							_state = java.lang.Enum.valueOf(${mapname}.class,stateName).getState();
+			</#if>						
             
                     return;
                 }

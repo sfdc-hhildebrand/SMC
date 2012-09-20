@@ -1,0 +1,18 @@
+<#if action.emptyStateStack>
+        context.emptyStateStack();
+<#else>
+    <@compress single_line=true>
+    <#if action.static>
+          ${action.name}(
+    <#else>
+          ctxt.${action.name}(
+    </#if>
+    <#list action.arguments as arg>
+        ${arg}
+        <#if action.arguments?last != arg>
+            ,
+        </#if>
+    </#list>
+            )   ;
+    </@compress>
+</#if>

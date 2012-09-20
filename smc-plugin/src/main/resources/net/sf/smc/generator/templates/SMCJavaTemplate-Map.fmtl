@@ -15,8 +15,9 @@
         //
 
 <#list map.states as state>
+		<#assign master_state_index = master_state_index+1>
         public static final ${map.name}_${state.className} ${state.instanceName} =
-        	new ${map.name}_${state.className}("${map.name}.${state.className}",${state_index});
+        	new ${map.name}_${state.className}("${map.name}.${state.className}",${master_state_index});
 </#list>
 
         <#--// Create a default state as well.  -->

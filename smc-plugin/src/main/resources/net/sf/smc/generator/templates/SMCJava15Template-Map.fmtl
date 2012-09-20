@@ -1,0 +1,114 @@
+			// generated code for map ${map.name}, SMCJavaTemplate-Map
+
+	   static ${accessLevel} enum ${map.name} 
+	   {
+	
+			Default(new ${map.name}_Default("${map.name}.Default)",-1))
+			<#list map.states as state>
+				<#assign master_state_index = master_state_index+1>
+				<#if multimap>
+					,${state.className}(new ${map.name}_${state.className}("${map.name}_${state.className}",${master_state_index}))
+				<#else>
+					,${state.className}(new ${map.name}_${state.className}("${map.name}.${state.className}",${master_state_index}))
+				</#if>
+			</#list>
+			;
+			
+			${map.name}_Default stateInstance;
+		
+			${map.name}(${map.name}_Default stateInstance)
+			{
+				this.stateInstance=stateInstance;
+			}
+				
+				
+				
+			  ${accessLevel} ${map.name}_Default getState()
+			{
+				return stateInstance;
+			}
+			
+			static  ${accessLevel} ${fsmClassName}State  getState(String label)
+			{
+				return java.lang.Enum.valueOf(${map.name}.class,label).getState();
+			}
+	
+			static ${accessLevel} ${fsmClassName} buildFSM(${context} owner, String initStateAsString)
+			{
+					${map.name} enumer=java.lang.Enum.valueOf(${map.name}.class,initStateAsString);
+					return buildFSM(owner,enumer);
+			}
+			
+			static ${accessLevel} ${fsmClassName}  buildFSM(${context} owner, ${map.name} enumer)
+			{
+					${map.name}_Default initState = enumer.getState();
+					return new ${fsmClassName}(owner,initState);
+			}
+			
+			${accessLevel} ${fsmClassName} buildFSM(${context} owner)
+			{
+				return buildFSM(owner,this);
+			}
+	
+	
+		}
+        
+        
+
+
+   @SuppressWarnings("serial")
+   protected static class 
+        ${map.name}_Default  extends ${fsmClassName}State
+    	{
+            //-----------------------------------------------------------
+            // Member methods.
+            //
+
+		public Map<Transitions, Integer> getTransitions() {            return (_transitions); }
+        
+		protected ${map.name}_Default(String name, Integer id)
+        {
+            super (name, id);
+        }
+
+
+		<#if map.defaultState??>
+			<#list map.defaultState.transitions as transition>
+				<#include "SMCJavaTemplate-Transition.fmtl">
+			</#list>
+		</#if>
+		
+        //-----------------------------------------------------------
+        // Member data.
+        //
+
+            //---------------------------------------------------
+            // Statics.
+            //
+            
+			private static Map<Transitions, Integer> _transitions;
+      		
+            static
+            {
+            	
+                _transitions = new EnumMap<Transitions, Integer>(Transitions.class);
+
+	<#list map.transitions as transition>
+
+
+		<#if map.defaultState?? && map.defaultState.transitions?seq_contains(transition)>
+            _transitions.put(Transitions.${transition.name},statemap.State.TRANSITION_DEFINED_DEFAULT);
+		<#else>
+            _transitions.put(Transitions.${transition.name},statemap.State.TRANSITION_UNDEFINED);
+		</#if>
+			
+	</#list>
+        }
+
+}
+
+<#list map.states as state>
+	<#include "SMCJava15Template-State.fmtl">
+</#list>
+        
+ // end SMCJavaTemplate-Map
