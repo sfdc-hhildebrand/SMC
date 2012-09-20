@@ -33,6 +33,7 @@ import org.apache.maven.project.MavenProject;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * @author hhildebrand
@@ -180,22 +181,32 @@ public class Plugin extends AbstractMojo {
 
 	/***
 	 * template file to use
+	 * @parameter
 	 */
 	private String template= null;
 
 	/**
 	 * Template directory to use
+	 * @parameter
 	 */
 	private String templateDirectory= null;
 
 	/**
 	 * template stuffix to use
+	 * @parameter
 	 */
 	private String templateSuffix = null;
 	/**
 	 * Whether we should generate a package directory
+	 * @parameter
 	 */
 	 private boolean packageDirectory = false;
+
+	/**
+	 * Template Params
+	 * @throws MojoExecutionException
+	 */
+	private Map<String,String> templateParam=null;
 
 	@Override
     public void execute() throws MojoExecutionException {
@@ -281,6 +292,16 @@ public class Plugin extends AbstractMojo {
 		if (packageDirectory)
 		{
 			args.add("-pdir");
+		}
+
+		if (templateParam != null)
+		{
+			for (String key: templateParam.keySet())
+			{
+				args.add("-tparam");
+				args.add(key);
+				args.add(templateParam.get(key));
+			}
 		}
 
 		args.add("-d");
