@@ -21,6 +21,15 @@
 				this.stateInstance=stateInstance;
 			}
 				
+			public String getMapName()
+			{
+				return "${map.name}";
+			}
+			
+			public String getStateName()
+			{
+				return this.name();
+			}
 				
 				
 			  ${accessLevel} ${map.name}_Default getState()

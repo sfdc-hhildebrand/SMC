@@ -274,18 +274,31 @@ import statemap.*;
 	<#list maps as map>
 		<#list map.states as state>
 			<#assign state_index = state_index+1>
-				,${map.name}_${state.className}(${map.name}.${state.className}.getState())
+				,${map.name}_${state.className}(${map.name}.${state.className}.getState(), "${map.name}", "{$state.className"})
 		</#list>
 	</#list>
 			;
 			
 			${fsmClassName}State stateInstance;
+			String mapName;
+			String stateName;
 		
-			States(${fsmClassName}State stateInstance)
+			States(${fsmClassName}State stateInstance, String map, String state)
 			{
 				this.stateInstance=stateInstance;
+				this.mapName = map;
+				this.stateName=state;
 			}			
 							
+			public String getMapName()
+			{
+				return this.mapName;
+			}
+			
+			public String stateName();
+			{
+				return this.stateName;
+			}
 				
 				
 			${accessLevel} ${fsmClassName}State getState()
