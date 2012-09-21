@@ -1,0 +1,186 @@
+// -*- tab-width: 4; -*-
+
+%{
+//
+// The contents of this file are subject to the Mozilla Public
+// License Version 1.1 (the "License"); you may not use this file
+// except in compliance with the License. You may obtain a copy of
+// the License at http://www.mozilla.org/MPL/
+// 
+// Software distributed under the License is distributed on an "AS
+// IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+// implied. See the License for the specific language governing
+// rights and limitations under the License.
+// 
+// The Original Code is State Machine Compiler (SMC).
+// 
+// The Initial Developer of the Original Code is Charles W. Rapp.
+// Portions created by Charles W. Rapp are
+// Copyright (C) 2000 - 2003 Charles W. Rapp.
+// All Rights Reserved.
+// 
+// Contributor(s): 
+//
+// State Machine
+//  Stoplight
+//
+// Description
+//  This state machine changes the stop lights.
+//
+// RCS ID
+// $Id: Stoplight.sm,v 1.5 2005/05/28 13:51:24 cwrapp Exp $
+//
+// CHANGE LOG
+// $Log: Stoplight.sm,v $
+// Revision 1.5  2005/05/28 13:51:24  cwrapp
+// Update Java examples 1 - 7.
+//
+// Revision 1.1  2004/05/31 13:41:58  charlesr
+// Modified emacs comment.
+//
+// Revision 1.0  2003/12/14 20:02:31  charlesr
+// Initial revision
+//
+%}
+
+%start StopMap::Stopped
+%class Stoplight
+%package example_4
+
+%map StopMap
+%%
+Stopped
+{
+    Start
+        EastWestGreen
+        {
+            InitLights();
+            TurnLight("NSLIGHT", "RED");
+            TurnLight("EWLIGHT", "GREEN");
+            InformCanvas("EastWest");
+            SetTimer("EastWest");
+        }
+
+    // Ignore pause, continue and stop because we ain't running.
+    Pause
+        nil
+        {}
+    Continue
+        nil
+        {}
+    Stop
+        nil
+        {}
+}
+
+EastWestGreen
+{
+    Timeout
+        EastWestYellow
+        {
+            TurnLight("EWLIGHT", "YELLOW");
+            InformCanvas("YELLOW");
+            SetTimer("Yellow");
+        }
+}
+
+EastWestYellow
+{
+    Timeout
+        NorthSouthGreen
+        {
+            TurnLight("EWLIGHT", "RED");
+            TurnLight("NSLIGHT", "GREEN");
+            InformCanvas("NorthSouth");
+            SetTimer("NorthSouth");
+        }
+}
+
+NorthSouthGreen
+{
+    Timeout
+        NorthSouthYellow
+        {
+            TurnLight("NSLIGHT", "YELLOW");
+            InformCanvas("YELLOW");
+            SetTimer("Yellow");
+        }
+}
+
+NorthSouthYellow
+{
+    Timeout
+        EastWestGreen
+        {
+            TurnLight("NSLIGHT", "RED");
+            TurnLight("EWLIGHT", "GREEN");
+            InformCanvas("EastWest");
+            SetTimer("EastWest");
+        }
+}
+
+Default
+{
+    // Ignore start because this object is already running.
+    Start
+        nil
+        {}
+    Continue
+        nil
+        {}
+
+    // Don't stop timers. Let them expire. The pause map will
+    // catch them and pass them back when popped.
+    Pause
+        push(PauseMap1::Paused)
+        {
+            PauseTimer();
+        }
+
+    // Stop timers because this demo is stopping.
+    Stop
+        Stopped
+        {
+            StopTimer();
+            InitLights();
+        }
+}
+%%
+
+%map PauseMap1
+%%
+Paused
+{
+    Timeout
+        PauseTimeout
+        {}
+
+    Continue
+        pop(Continue)
+        {
+            ContinueTimer();
+        }
+}
+
+PauseTimeout
+{
+    Continue
+        pop(Timeout)
+        {}
+}
+
+Default
+{
+    // Ignore start and pause.
+    Start
+        nil
+        {}
+    Pause
+        nil
+        {}
+
+    Stop
+        pop(Stop)
+        {}
+}
+%%

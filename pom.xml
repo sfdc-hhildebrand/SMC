@@ -11,6 +11,7 @@
 	<modules>
 		<module>smc-plugin</module>
 		<module>smc-runtime</module>
+		<module>plugin-testing</module>
 	</modules>
 
 	<properties>

@@ -1,0 +1,130 @@
+// -*- tab-width: 4; -*-
+
+%{
+//
+// The contents of this file are subject to the Mozilla Public
+// License Version 1.1 (the "License"); you may not use this file
+// except in compliance with the License. You may obtain a copy of
+// the License at http://www.mozilla.org/MPL/
+// 
+// Software distributed under the License is distributed on an "AS
+// IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+// implied. See the License for the specific language governing
+// rights and limitations under the License.
+// 
+// The Original Code is State Machine Compiler (SMC).
+// 
+// The Initial Developer of the Original Code is Charles W. Rapp.
+// Portions created by Charles W. Rapp are
+// Copyright (C) 2000 - 2003 Charles W. Rapp.
+// All Rights Reserved.
+// 
+// Contributor(s): 
+//
+// State Machine
+// Vehicle
+//
+// Description
+//  This state machine moves the vehicle along the road, obeying
+//  the traffic light along the way.
+//
+// RCS ID
+// $Id: Vehicle.sm,v 1.5 2005/05/28 13:51:24 cwrapp Exp $
+//
+// CHANGE LOG
+// $Log: Vehicle.sm,v $
+// Revision 1.5  2005/05/28 13:51:24  cwrapp
+// Update Java examples 1 - 7.
+//
+// Revision 1.1  2004/05/31 13:42:16  charlesr
+// Modified emacs comment.
+//
+// Revision 1.0  2003/12/14 20:05:05  charlesr
+// Initial revision
+//
+%}
+
+%start VehicleMap::Stopped
+%class Vehicle
+%package example_4
+
+%map VehicleMap
+%%
+Stopped
+{
+    Start
+        Moving
+        {}
+
+    Move
+        nil
+        {}
+    Stop
+        nil
+        {}
+    Pause
+        nil
+        {}
+    Continue
+        nil
+        {}
+}
+
+Moving
+{
+    Move
+      [ctxt.getXPos() < ctxt.getMinX() ||
+       ctxt.getXPos() > ctxt.getMaxX() ||
+       ctxt.getYPos() < ctxt.getMinY() ||
+       ctxt.getYPos() > ctxt.getMaxY()]
+        Done
+        {
+            EndTrip();
+        }
+
+    Move
+      [ctxt.getLightsColor() != java.awt.Color.green &&
+       ctxt.getDistanceToIntersection() >= 0 &&
+       ctxt.getDistanceToIntersection() <= ctxt.getSpeed()]
+        AtLight
+        {
+            Advance();
+            WatchLight();
+        }
+
+    Move
+        nil
+        {
+            Advance();
+        }
+}
+
+AtLight
+{
+    LightGreen
+        Moving
+        {}
+
+    Move
+        nil
+        {}
+}
+
+Done
+{}
+
+Default
+{
+    Move
+        nil
+        {}
+
+    Start
+        nil
+        {}
+
+    Stop
+        Stopped
+        {}
+}
+%%

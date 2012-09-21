@@ -1,0 +1,884 @@
+// -*- tab-width: 4; -*-
+
+%{
+//
+// The contents of this file are subject to the Mozilla Public
+// License Version 1.1 (the "License"); you may not use this file
+// except in compliance with the License. You may obtain a copy
+// of the License at http://www.mozilla.org/MPL/
+// 
+// Software distributed under the License is distributed on an
+// "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+// implied. See the License for the specific language governing
+// rights and limitations under the License.
+// 
+// The Original Code is State Machine Compiler (SMC).
+// 
+// The Initial Developer of the Original Code is Charles W. Rapp.
+// Portions created by Charles W. Rapp are
+// Copyright (C) 2000 - 2003 Charles W. Rapp.
+// All Rights Reserved.
+// 
+// Contributor(s): 
+//
+// Name
+//  TcpConnection.sm
+//
+// Description
+//  The TCP/IP state transition diagram.
+//
+// RCS ID
+// $Id: TcpConnection.sm,v 1.7 2007/12/28 12:34:40 cwrapp Exp $
+//
+// CHANGE LOG
+// $Log: TcpConnection.sm,v $
+// Revision 1.7  2007/12/28 12:34:40  cwrapp
+// Version 5.0.1 check-in.
+//
+// Revision 1.6  2005/11/07 19:34:54  cwrapp
+// Changes in release 4.3.0:
+// New features:
+//
+// + Added -reflect option for Java, C#, VB.Net and Tcl code
+//   generation. When used, allows applications to query a state
+//   about its supported transitions. Returns a list of transition
+//   names. This feature is useful to GUI developers who want to
+//   enable/disable features based on the current state. See
+//   Programmer's Manual section 11: On Reflection for more
+//   information.
+//
+// + Updated LICENSE.txt with a missing final paragraph which allows
+//   MPL 1.1 covered code to work with the GNU GPL.
+//
+// + Added a Maven plug-in and an ant task to a new tools directory.
+//   Added Eiten Suez's SMC tutorial (in PDF) to a new docs
+//   directory.
+//
+// Fixed the following bugs:
+//
+// + (GraphViz) DOT file generation did not properly escape
+//   double quotes appearing in transition guards. This has been
+//   corrected.
+//
+// + A note: the SMC FAQ incorrectly stated that C/C++ generated
+//   code is thread safe. This is wrong. C/C++ generated is
+//   certainly *not* thread safe. Multi-threaded C/C++ applications
+//   are required to synchronize access to the FSM to allow for
+//   correct performance.
+//
+// + (Java) The generated getState() method is now public.
+//
+// Revision 1.5  2005/05/28 13:51:24  cwrapp
+// Update Java examples 1 - 7.
+//
+// Revision 1.1  2005/02/21 14:18:34  charlesr
+// Added spaced around import class to test SMC.
+//
+// Revision 1.0  2003/12/14 20:19:48  charlesr
+// Initial revision
+//
+%}
+
+%class TcpConnection
+%start MainMap::CLOSED
+%package example_6
+%import    java.net.InetAddress   
+
+%map MainMap
+%%
+CLOSED
+{
+    PassiveOpen(port: int)
+        ServiceOpening
+        {
+            openServerSocket(port);
+        }
+
+    ActiveOpen(address: InetAddress, port: int)
+        ClientOpening
+        {
+            openClientSocket(address, port);
+        }
+
+    AcceptOpen(segment: TcpSegment)
+        SYN_RCVD
+        {
+            sendAcceptSynAck(segment);
+        }
+
+    // Ignore undefined transtions when closed.
+    UNDEF(segment: TcpSegment)
+		nil
+        {}
+
+    // Ignore close requests when closed.
+    Close
+        nil
+        {}
+}
+
+// Wait here until service open has either succeeded or failed.
+ServiceOpening
+{
+    Opened
+        LISTEN
+        {
+            openSuccess();
+        }
+
+    OpenFailed(reason: String)
+        CLOSED
+        {
+            openFailed(reason);
+        }
+}
+
+// Wait here until client open has either succeeded or failed.
+ClientOpening
+{
+    Opened(address: InetAddress, port: int)
+        SYN_SENT
+        {
+            send(TcpSegment.SYN,
+                 null,
+                 0,
+                 0,
+                 address,
+                 port,
+                 null);}
+
+    OpenFailed(reason: String)
+        CLOSED
+        {
+            openFailed(reason);
+        }
+}
+
+// Server sockets just sit here, creating new client sockets when
+// a SYN is received.
+LISTEN
+{
+    // Create a new client socket and send its port number in
+    // the SYN/ACK response.
+    SYN(segment: TcpSegment)
+        nil
+        {
+            accept(segment);
+        }
+
+    Close
+        CLOSED
+        {
+            closeSocket();
+            closed("");
+        }
+
+    // But don't reset a reset message because there is no
+    // connection to reset.
+    RST(segment: TcpSegment)
+        nil
+        {}
+}
+
+// An "accepted" client socket starts life in this state.
+SYN_RCVD
+Entry
+{
+    startTimer("ACK_TIMER", TcpConnection.ACK_TIMEOUT);
+}
+Exit
+{
+    stopTimer("ACK_TIMER");
+}
+{
+    // The connection was reset before it was established.
+    // Close the datagram socket but don't tell anybody.
+    RST(segment: TcpSegment)
+        CLOSED
+        {
+            closeSocket();
+            clearListener();
+        }
+
+    // The TCP state transition diagram shows the server socket
+    // taking an ACK transtion to the ESTABLISHED state but that
+    // is not quite true. The accepted client socket starts in
+    // the ESTABLISHED state while the server socket goes back to
+    // LISTEN.
+    ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort() &&
+       segment.getAcknowledgeNumber() == ctxt.getSequenceNumber()]
+        ESTABLISHED
+        {
+            accepted();
+        }
+
+    Close
+        FIN_WAIT_1
+        {
+            send(TcpSegment.FIN,
+                 null,
+                 0,
+                 0,
+                 null,
+                 -1,
+                 null);
+        }
+
+    AckTimeout
+        CLOSED
+        {
+            closeSocket();
+            openFailed("acknowledge timeout");
+        }
+}
+
+// A application-created client starts life in this state.
+SYN_SENT
+Entry
+{
+    startTimer("CONN_ACK_TIMER", TcpConnection.ACK_TIMEOUT);
+}
+Exit
+{
+    stopTimer("CONN_ACK_TIMER");
+}
+{
+    SYN_ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort() &&
+       segment.getAcknowledgeNumber() == ctxt.getSequenceNumber()]
+        ESTABLISHED
+        {
+            setDestinationPort(segment);
+            send(TcpSegment.ACK,
+                 null,
+                 0,
+                 0,
+                 segment);
+            openSuccess();
+        }
+
+    Close
+        CLOSED
+        {
+            closeSocket();
+            closed("");
+        }
+
+    ConnAckTimeout
+        CLOSED
+        {
+            closeSocket();
+            openFailed("acknowledge timeout");
+        }
+}
+
+ESTABLISHED
+{
+    FIN(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress())
+            == true &&
+       segment.getSourcePort() == ctxt.getFarPort()]
+        CLOSE_WAIT
+        {
+            send(TcpSegment.ACK,
+                 null,
+                 0,
+                 0,
+                 segment);
+            halfClosed();
+        }
+
+    PSH(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress())
+            == true &&
+       segment.getSourcePort() == ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.ACK,
+                 null,
+                 0,
+                 0,
+                 segment);
+            receive(segment);
+        }
+
+    Transmit(data: byte[], offset: int, size: int)
+        Transmitting
+        {
+            send(TcpSegment.PSH,
+                 data,
+                 offset,
+                 size,
+                 null,
+                 0,
+                 null);
+        }
+
+    Close
+        FIN_WAIT_1
+        {
+            send(TcpSegment.FIN,
+                 null,
+                 0,
+                 0,
+                 null,
+                 0,
+                 null);
+        }
+}
+
+Transmitting
+Entry
+{
+    startTimer("TRANS_ACK_TIMER",
+               TcpConnection.ACK_TIMEOUT);
+}
+Exit
+{
+    stopTimer("TRANS_ACK_TIMER");
+}
+{
+    ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort() &&
+       segment.getAcknowledgeNumber() == ctxt.getSequenceNumber()]
+        ESTABLISHED
+        {
+            transmitted();
+        }
+
+    PSH_ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort() &&
+       segment.getAcknowledgeNumber() == ctxt.getSequenceNumber()]
+        ESTABLISHED
+        {
+            send(TcpSegment.ACK,
+                 null,
+                 0,
+                 0,
+                 segment);
+            transmitted();
+            receive(segment);
+        }
+
+    FIN(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort()]
+        CLOSE_WAIT
+        {
+            send(TcpSegment.ACK,
+                 null,
+                 0,
+                 0,
+                 segment);
+            halfClosed();
+        }
+
+    Close
+        FIN_WAIT_1
+        {
+            send(TcpSegment.FIN,
+                 null,
+                 0,
+                 0,
+                 null,
+                 0,
+                 null);
+        }
+
+    TransAckTimeout
+        CLOSED
+        {
+            transmitFailed("peer did not acknowledge");
+            closed("connection lost");
+        }
+}
+
+CLOSE_WAIT
+{
+    Close
+        LAST_ACK
+        {
+            send(TcpSegment.FIN,
+                 null,
+                 0,
+                 0,
+                 null,
+                 0,
+                 null);
+        }
+}
+
+LAST_ACK
+Entry
+{
+    startTimer("CLOSE_ACK_TIMER",
+               TcpConnection.ACK_TIMEOUT);
+}
+Exit
+{
+    stopTimer("CLOSE_ACK_TIMER");
+}
+{
+    ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort() &&
+       segment.getAcknowledgeNumber() == ctxt.getSequenceNumber()]
+        CLOSED
+        {
+            send(TcpSegment.FIN_ACK,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("");
+        }
+
+    CloseAckTimeout
+        CLOSED
+        {
+            closeSocket();
+            closed("");
+        }
+}
+
+FIN_WAIT_1
+Entry
+{
+    startTimer("CLOSE_ACK_TIMER",
+               TcpConnection.ACK_TIMEOUT);
+}
+Exit
+{
+    stopTimer("CLOSE_ACK_TIMER");
+}
+{
+    ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort() &&
+       segment.getAcknowledgeNumber() == ctxt.getSequenceNumber()]
+        FIN_WAIT_2
+        {}
+
+    FIN(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort()]
+        CLOSING
+        {
+            send(TcpSegment.ACK,
+                 null,
+                 0,
+                 0,
+                 segment);
+        }
+
+    FIN_ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort() &&
+       segment.getAcknowledgeNumber() == ctxt.getSequenceNumber()]
+        TIME_WAIT
+        {
+            send(TcpSegment.ACK,
+                 null,
+                 0,
+                 0,
+                 segment);
+        }
+
+    CloseAckTimeout
+        FIN_WAIT_2
+        {
+            closeSocket();
+        }
+}
+
+FIN_WAIT_2
+Entry
+{
+    startTimer("CLOSE_ACK_TIMER", TcpConnection.ACK_TIMEOUT);
+}
+Exit
+{
+    stopTimer("CLOSE_ACK_TIMER");
+}
+{
+    FIN(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort()]
+        TIME_WAIT
+        {
+            send(TcpSegment.ACK,
+                 null,
+                 0,
+                 0,
+                 segment);
+        }
+
+    CloseAckTimeout
+        CLOSED
+        {
+            closeSocket();
+        }
+
+    // Ignore undefined transitions.
+    UNDEF(segment: TcpSegment)
+		nil
+        {}
+}
+
+CLOSING
+Entry
+{
+    startTimer("CLOSE_ACK_TIMER", TcpConnection.ACK_TIMEOUT);
+}
+Exit
+{
+    stopTimer("CLOSE_ACK_TIMER");
+}
+{
+    ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort() &&
+       segment.getAcknowledgeNumber() == ctxt.getSequenceNumber()]
+        TIME_WAIT
+        {}
+
+    CloseAckTimeout
+        TIME_WAIT
+        {
+            closeSocket();
+        }
+
+    // Ignore undefined transitions.
+    UNDEF(segment: TcpSegment)
+		nil
+        {}
+}
+
+TIME_WAIT
+Entry
+{
+    startTimer("CLOSE_TIMER", TcpConnection.CLOSE_TIMEOUT);
+}
+Exit
+{
+    stopTimer("CLOSE_TIMER");
+}
+{
+    FIN_ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == true &&
+       segment.getSourcePort() == ctxt.getFarPort() &&
+       segment.getAcknowledgeNumber() == ctxt.getSequenceNumber()]
+        CLOSED
+        {
+            closeSocket();
+        }
+
+    CloseTimeout
+        CLOSED
+        {
+            closeSocket();
+        }
+
+    // Ignore undefined transitions.
+    UNDEF(segment: TcpSegment)
+		nil
+        {}
+}
+
+Default
+{
+    PassiveOpen(port: int)
+        nil
+        {
+            openFailed("already open");
+        }
+
+    ActiveOpen(address: InetAddress, port: int)
+        nil
+        {
+            openFailed("already open");
+        }
+
+    Transmit(data: byte[], offset: int, size: int)
+        nil
+        {
+            transmitFailed("connection not established");
+        }
+
+    // The default action when an unknown client sends us a
+    // segment is to reset the unknown client but remain in
+    // the current state for a segment from the real client.
+    FIN(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == false ||
+       segment.getSourcePort() != ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    SYN(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == false ||
+       segment.getSourcePort() != ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    PSH(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == false ||
+       segment.getSourcePort() != ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == false ||
+       segment.getSourcePort() != ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    URG(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == false ||
+       segment.getSourcePort() != ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    FIN_ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == false ||
+       segment.getSourcePort() != ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    SYN_ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == false ||
+       segment.getSourcePort() != ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+   PSH_ACK(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == false ||
+       segment.getSourcePort() != ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    UNDEF(segment: TcpSegment)
+      [(segment.getSourceAddress()).equals(ctxt.getFarAddress()) == false ||
+       segment.getSourcePort() != ctxt.getFarPort()]
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    // Do not reset a reset. Just go to closed.
+    RST(segment: TcpSegment)
+        CLOSED
+        {
+            closeSocket();
+            closed("connection reset by peer");
+        }
+
+    RST_ACK(segment: TcpSegment)
+        CLOSED
+        {
+            closeSocket();
+            closed("connection reset by peer");
+        }
+
+    // The remain transitions represent segments received
+    // when they were not expected from the peer. The
+    // connection is reset.
+    FIN(segment: TcpSegment)
+        CLOSED
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    SYN(segment: TcpSegment)
+        CLOSED
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closed("connection reset");
+        }
+
+    PSH(segment: TcpSegment)
+        CLOSED         
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    ACK(segment: TcpSegment)
+        CLOSED
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    URG(segment: TcpSegment)
+        CLOSED
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    FIN_ACK(segment: TcpSegment)
+        CLOSED
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    SYN_ACK(segment: TcpSegment)
+        CLOSED
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    PSH_ACK(segment: TcpSegment)
+        CLOSED
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");}
+
+    UNDEF(segment: TcpSegment)
+        nil
+        {
+            send(TcpSegment.RST,
+                 null,
+                 0,
+                 0,
+                 segment);
+            closeSocket();
+            closed("connection reset");
+        }
+
+    // Ignore timeouts which occur when not expected.
+    ConnAckTimeout
+        nil
+        {}
+
+    TransAckTimeout
+        nil
+        {}
+
+    CloseAckTimeout
+        nil
+        {}
+
+    CloseTimeout
+        nil
+        {}
+}
+%%
