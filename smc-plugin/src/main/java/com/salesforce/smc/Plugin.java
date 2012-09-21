@@ -197,12 +197,16 @@ public class Plugin extends AbstractMojo {
         project.addCompileSourceRoot(targetDir.getAbsolutePath());
 
         ArrayList<String> sources = new ArrayList<String>();
-        for (File source : srcDir.listFiles(new FilenameFilter() {
+        File[] list = srcDir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".sm");
             }
-        })) {
+        });
+        if (list == null) {
+            list = new File[0];
+        }
+        for (File source : list) {
             sources.add(source.getAbsolutePath());
         }
 
