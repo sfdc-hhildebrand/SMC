@@ -187,6 +187,20 @@ public final class SmcState
         return(_transitions);
     } // end of getTransitions()
 
+	/**
+	 * Returns the state transition signatures.
+	 * @return the state transition signatures.
+	 */
+	public List<String> getSignatures()
+	{
+		List<String> result = new ArrayList<String>( _transitions.size());
+		for (SmcTransition trans: _transitions)
+		{
+			result.add(trans.getSignature());
+		}
+		return(result);
+	} // end of getSignatures()
+
     /**
      * Returns the transition with the specified name and
      * parameters. May return {@code null}.

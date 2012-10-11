@@ -1,0 +1,89 @@
+// start   SMCJavaTemplate-state for ${state.name}
+
+@SuppressWarnings("serial")
+        private static final class ${map.name}_${state.className} extends ${map.name}_Default       //begin state class
+		{	
+            //-------------------------------------------------------
+            // Member methods.
+            //
+        
+        
+<#if reflectFlag>
+	<#if genericFlag>
+            public Map<String, Integer> getTransitions(){ return _transitions; }
+    <#else>
+            public Map getTransitions(){ return _transitions; }
+	</#if>
+</#if>
+
+        private ${map.name}_${state.className}(String name, int id)
+        {
+        	super(name,id);
+        }
+
+<#if (state.entryActions?? && (state.entryActions?size > 0))>
+
+        protected void Entry(${map.FSM.fsmClassName} context)
+        {
+
+            ${context} ctxt = context.getOwner();                
+    <#list state.entryActions as action>
+    	<#include "SMCJavaTemplate-Action.fmtl">
+    </#list>
+    		return;
+        }
+</#if>        
+
+<#if (state.exitActions?? && state.exitActions?size > 0)>
+
+        protected void Exit(${map.FSM.fsmClassName} context)
+        {
+
+            ${context} ctxt = context.getOwner();                
+    <#list state.exitActions as action>
+    	<#include "SMCJavaTemplate-Action.fmtl">
+    </#list>
+    		return;
+        }
+</#if>        
+
+            // start transitions for  state ${state.name}
+<#list state.transitions as transition>
+	<#include "SMCJavaTemplate-Transition.fmtl">
+</#list>
+            // end transitions for state ${state.name}
+
+//-------------------------------------------------------
+// Member data.
+//
+
+<#if reflectFlag>
+
+			//---------------------------------------------------
+            // Statics.
+        <#if genericFlag>
+            private static Map<String, Integer>  _transitions;
+			static 
+			{
+				_transitions = new HashMap<String,Integer>();
+        <#else>
+            private static Map  _transitions;
+			static 
+			{
+				_transitions = new HashMap();
+        </#if>
+
+	<#list map.FSM.transitions as transition>
+			<#if state.signatures?seq_contains(transition.signature) >
+                _transitions.put("${transition.name}",statemap.State.TRANSITION_DEFINED_LOCALLY);
+			<#elseif map.defaultState?? && map.defaultState.signatures?seq_contains(transition.signature)>
+                _transitions.put("${transition.name}",statemap.State.TRANSITION_DEFINED_DEFAULT);
+			<#else>
+                _transitions.put("${transition.name}",statemap.State.TRANSITION_UNDEFINED);
+			</#if>
+    </#list>
+            }
+</#if>        
+    }
+
+// end SMCJavaTemplate-State

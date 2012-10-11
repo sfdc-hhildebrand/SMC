@@ -1,0 +1,202 @@
+// starts SMCJavaTemplate-guard
+
+<#if (transition.guards?size > 1)>
+
+	<#if transition.guards?first == guard && guard.condition?? && guard.condition != "">
+		if (${guard.condition})
+	<#elseif guard.condition?? && guard.condition != "">
+		else if (${guard.condition}
+	<#else>
+		else
+	</#if>
+		{
+
+           
+<#elseif !(guard.condition??) || guard.condition == "">
+        
+<#else>
+		if (${guard.condition})
+		{
+</#if>
+
+<#--
+        // Now that the necessary conditions are in place, it's
+        // time to dump out the guard.transition's actions. First, do
+        // the proper handling of the guard.transition.state change. If this
+        // guard.transition has no actions, then set the end guard.transition.state
+        // immediately. Otherwise, unset the current guard.transition.state so
+        // that if an action tries to issue a guard.transition, it will
+        // fail.
+-->
+
+<#if (guard.loopback)>
+            ${fsmClassName}State endState = context.getState();
+<#else>
+            ${fsmClassName}State endState = ${guard.endStateScoped};
+</#if>
+
+<#--
+        // 
+
+        // Dump out the exit actions - but only for the first
+        // guard.
+        // v. 1.0, beta 3: Not any more. The exit actions are
+        // executed only if 1) this is a standard, non-loopback
+        // guard.transition or a pop guard.transition.
+-->
+        
+<#if guard.transType.name() == "TRANS_POP" || (!guard.loopback)>
+            if (log.isTraceEnabled())
+            {
+                    log.trace("BEFORE EXIT     : ${map.name}.${transition.state.className}.Exit(context) [" + context.getName() + "]");
+            }
+            (context.getState()).Exit(context);
+ 
+            if (log.isTraceEnabled())
+            {
+                    log.trace("AFTER EXIT     : ${map.name}.${transition.state.className}.Exit(context) [" + context.getName() + "]");
+            }
+</#if>
+
+<#--
+        // Output guard.transition to debug stream.
+-->
+<#if (debugLevel > 0)>
+             if (log.isTraceEnabled())
+             {
+             	<@compress single_line=true>
+             	log.trace("ENTER transition: ${map.name}.${state.className}.${transition.name}(
+	<#list transition.parameters as param>
+             		${param.type} ${param.name}
+		<#if param_has_next>
+             			,
+		</#if>
+	</#list>
+				[" + ${context.name} + "]");
+				</@compress>
+             }
+           
+</#if>
+
+
+<#--
+        // Dump out this guard.transition's actions.
+-->
+
+<#if (guard.actions?size == 0)>
+	<#if guard.condition??>
+		// No actions
+	</#if>
+<#else>
+	context.clearState();
+			
+				
+	<#if !noCatchFlag>
+				try {
+	</#if>			
+	
+	<#list guard.actions as action>
+		<#if action.emptyStateStack>
+			context.emptyStateStack();
+		<#else>
+			<@compress single_line=true>
+			<#if action.static>
+				${action.name}(
+			<#else>
+				ctxt.${action.name}(
+			</#if>
+			<#list action.arguments as arg>
+				${arg}
+				<#if arg_has_next>
+					,
+				</#if>
+            </#list>
+				);
+			</@compress>
+			
+		</#if>
+    </#list>
+	
+	<#if !noCatchFlag>
+				 } finally {
+	</#if>			
+	
+	<#if (debugLevel > 0)>
+	
+				if (log.isTraceEnabled())
+				 {
+			<@compress single_line=true>
+					log.trace("EXIT transition: ${map.name}.${state.className}.${transition.name}(
+		<#list transition.parameters as param>
+						${param.type} ${param.name}
+			<#if param_has_next>
+							,
+			</#if>
+		</#list>
+					[" + ${context.name} + "]");
+			</@compress>
+				 }        
+	</#if>
+	
+</#if>
+	
+<#--
+			// Print the setState() call, if necessary. Do NOT
+			// generate the set guard.transition.state if:
+			// 1. The guard.transition has no actions AND is a loopback OR
+			// 2. This is a push or pop guard.transition.
+-->			
+<#if (guard.transType.name() == "TRANS_SET" && (guard.hasActions || guard.loopback)) >
+				context.setState(endState);
+<#elseif (guard.transType.name() == "TRANS_PUSH")>
+
+	<#if guard.loopback || guard.hasActions>
+		context.setState(endState);
+	</#if>
+	<#if !guard.loopback>
+		(context.getState()).Entry(context);
+	</#if>
+	context.pushState(guard.pushStateScoped);
+<#elseif (guard.transType.name() == "TRANS_POP")>
+	context.popState();
+</#if>
+	
+				
+	
+<#if ((guard.transType.name() == "TRANS_SET" && (!guard.loopback)) || (guard.transType.name() == "TRANS_PUSH"))>
+<#--
+			// Perform the new guard.transition.state's enty actions.
+			// v. 1.0, beta 3: Not any more. The entry actions are
+			// executed only if 1) this is a standard, non-loopback
+			// guard.transition or a push guard.transition.
+-->	
+				if (log.isTraceEnabled())
+				{
+					log.trace("BEFORE ENTRY     : ${map.name}.${guard.transition.state.className}.Entry(context)[" + context.getName() + "]");
+				}
+				
+				(context.getState()).Entry(context);
+	
+				if (log.isTraceEnabled())
+				{
+					log.trace("AFTER ENTRY     : ${map.name}.${guard.transition.state.className}.Entry(context)[" + context.getName() + "]");
+				}
+</#if>
+<#if !noCatchFlag && guard.hasActions>
+    	}
+</#if>
+
+<#if (guard.transType.name() == "TRANS_POP" &&
+            guard.endState != "nil" &&
+            guard.endState?size > 0)>
+<#--
+        // If there is a transition associated with the pop, then
+        // issue that transition here.
+-->
+        context.${guard.endStateScoped}(${guard.popArgs});
+</#if>
+<#if (transition.guards?size > 1)>
+}      // end guard ifs
+</#if>
+
+// end SMCJavaTemplate-guard

@@ -34,6 +34,9 @@
 
 package net.sf.smc.parser;
 
+import net.sf.smc.model.*;
+import net.sf.smc.model.SmcElement.TransType;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -43,14 +46,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import net.sf.smc.model.SmcAction;
-import net.sf.smc.model.SmcElement.TransType;
-import net.sf.smc.model.SmcFSM;
-import net.sf.smc.model.SmcGuard;
-import net.sf.smc.model.SmcMap;
-import net.sf.smc.model.SmcParameter;
-import net.sf.smc.model.SmcState;
-import net.sf.smc.model.SmcTransition;
 
 /**
  * Reads in a finite state machine definition from an input
@@ -1396,9 +1391,12 @@ public final class SmcParser
         /**
          * JavaScript
          */
-        JS ("{0}_sm");
+        JS ("{0}_sm"),
 
-    //-----------------------------------------------------------
+	    FREEMARKER ("{0}Context");
+
+
+	    //-----------------------------------------------------------
     // Member methods.
     //
 
@@ -1432,10 +1430,10 @@ public final class SmcParser
     } // end of enum TargetLanguage
 
     /**
-     * SMC currently supports 17 different target languages plus
+     * SMC currently supports 18 different target languages plus
      * one for an error code.
      */
-    public static final int LANGUAGE_COUNT = 18;
+    public static final int LANGUAGE_COUNT = 19;
 
 //---------------------------------------------------------------
 // Member Data

@@ -25,14 +25,14 @@
  */
 package com.salesforce.smc;
 
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.apache.maven.project.MavenProject;
+import org.junit.Test;
 
 import java.io.File;
 
-import org.apache.maven.project.MavenProject;
-import org.junit.Test;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * 
@@ -105,4 +105,100 @@ public class TestPlugin {
             deleteDirectory(tempDir);
         }
     }
+
+	@Test
+	public void testTemplateGenerate() throws Exception {
+		File tempDir = File.createTempFile("smc", "generated", new File("."));
+		try {
+			MavenProject project = mock(MavenProject.class);
+			when(project.getBasedir()).thenReturn(tempDir);
+			tempDir.delete();
+			tempDir.deleteOnExit();
+			String docDirectory = "target/classes/generated-sources/sm";
+			String targetDirectory = docDirectory;
+			Plugin plugin = new Plugin();
+
+			plugin.setDocDirectory( docDirectory );
+			plugin.setDebugLevel( 2 );
+			plugin.setFsmVerbose( false );
+			plugin.setGeneric( true );
+			plugin.setGraph( false );
+			plugin.setProject( project );
+			plugin.setReflection( true );
+			plugin.setSerial( true );
+			plugin.setSmDirectory( "../src/test/resources/sm" );
+			plugin.setSync( true );
+			plugin.setTable( false );
+			plugin.setTarget( "fm" );
+			plugin.setTemplateDirectory( "../src/main/resources/net/sf/smc/generator/templates" );
+			plugin.setTemplateSuffix( "java" );
+			plugin.setTemplate( "SMCJavaTemplate.fmtl" );
+			plugin.setTargetDirectory( targetDirectory );
+			plugin.setPackageDirectory(true);
+			plugin.setVerbose(true);
+
+			String packageName = "smc_ex5";
+			File targetDir = new File(tempDir, targetDirectory);
+			File packageDir = new File(targetDir, packageName);
+			File docDir = new File(tempDir, docDirectory);
+
+			plugin.execute();
+			assertTrue("TaskFSM.java not generated",
+					          new File(packageDir, "TaskFSM.java").exists());
+
+			assertTrue("TaskManagerFSM.java not generated",
+					          new File(packageDir, "TaskManagerFSM.java").exists());
+
+		} finally {
+			deleteDirectory(tempDir);
+		}
+	}
+
+	@Test
+	public void testTemplateGenerateClasspath() throws Exception {
+		File tempDir = File.createTempFile("smc", "generated", new File("."));
+		try {
+			MavenProject project = mock(MavenProject.class);
+			when(project.getBasedir()).thenReturn(tempDir);
+			tempDir.delete();
+			tempDir.deleteOnExit();
+			String docDirectory = "target/classes/generated-sources/sm";
+			String targetDirectory = docDirectory;
+			Plugin plugin = new Plugin();
+
+			plugin.setDocDirectory( docDirectory );
+			plugin.setDebugLevel( 2 );
+			plugin.setFsmVerbose( false );
+			plugin.setGeneric( true );
+			plugin.setGraph( false );
+			plugin.setProject( project );
+			plugin.setReflection( true );
+			plugin.setSerial( true );
+			plugin.setSmDirectory( "../src/test/resources/sm" );
+			plugin.setSync( true );
+			plugin.setTable( false );
+			plugin.setTarget( "fm" );
+			plugin.setTemplateDirectory( null );
+			plugin.setTemplateSuffix( "java" );
+			plugin.setTemplate( "SMCJavaTemplate.fmtl" );
+			plugin.setTargetDirectory( targetDirectory );
+			plugin.setPackageDirectory(true);
+			plugin.setVerbose(true);
+
+			String packageName = "smc_ex5";
+			File targetDir = new File(tempDir, targetDirectory);
+			File packageDir = new File(targetDir, packageName);
+			File docDir = new File(tempDir, docDirectory);
+
+			plugin.execute();
+			assertTrue("TaskFSM.java not generated",
+					          new File(packageDir, "TaskFSM.java").exists());
+
+			assertTrue("TaskManagerFSM.java not generated",
+					          new File(packageDir, "TaskManagerFSM.java").exists());
+
+		} finally {
+			deleteDirectory(tempDir);
+		}
+	}
 }

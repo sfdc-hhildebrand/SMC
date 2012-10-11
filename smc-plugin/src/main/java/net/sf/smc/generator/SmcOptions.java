@@ -34,6 +34,8 @@
 
 package net.sf.smc.generator;
 
+import java.util.Map;
+
 /**
  * This passive, immutable class stores the SMC generator options
  * and an instance is passed to the generator constructors.
@@ -83,6 +85,8 @@ public final class SmcOptions
      * collections.
      * @param accessLevel use this access keyword for the
      * generated classes.
+     * @param templateName use this template file for code generation.
+     * @param templateSuffix use this suffix for code generation.
      */
     public SmcOptions(final String srcfileBase,
                       final String targetfileBase,
@@ -98,7 +102,12 @@ public final class SmcOptions
                       final boolean reflectFlag,
                       final boolean syncFlag,
                       final boolean genericFlag,
-                      final String accessLevel)
+                      final String accessLevel,
+                      final String templateName,
+                      final String templateDirectory,
+                      final String templateSuffix,
+                      final boolean packageDir,
+                      final Map<String,String> templateParams)
     {
         _srcfileBase = srcfileBase;
         _targetfileBase = targetfileBase;
@@ -115,6 +124,11 @@ public final class SmcOptions
         _syncFlag = syncFlag;
         _genericFlag = genericFlag;
         _accessLevel = accessLevel;
+	    _templateName = templateName;
+	    _templateDirectory = templateDirectory;
+	    _templateSuffix = templateSuffix;
+	    _packageDir = packageDir;
+	    _templateParams = templateParams;
     } // end f SmcOptions(...)
 
     //
@@ -260,7 +274,51 @@ public final class SmcOptions
         return (_accessLevel);
     } // end of accessLevel()
 
-    //
+	/**
+	 * Returns the template to use for generation.
+	 * @return the template to use for generation.
+	 */
+	public String templateName()
+	{
+		return (_templateName);
+	} // end of templateName()
+
+
+	/**
+	 * Returns the suffix to use for generation.
+	 * @return the suffix to use for generation.
+	 */
+	public String templateSuffix()
+	{
+		return (_templateSuffix);
+	} // end of templateName()
+
+
+	/**
+	 * Returns the directory to search for template based generation.
+	 * @return the directory to search for template based generation.
+	 */
+	public String templateDirectory()
+	{
+		return _templateDirectory;
+	}
+
+	/**
+	 * Return true if we should generate the results in a directory package
+	 */
+	public boolean packageDir()
+	{
+		return _packageDir;
+	}
+
+	/** return open ended set of template parameters
+	 *
+	 * @return  a map of parameters
+	 */
+	public Map<String,String> templateParams()
+	{
+		return _templateParams;
+	}	//
     // end of Get methods.
     //-----------------------------------------------------------
 
@@ -305,7 +363,7 @@ public final class SmcOptions
     private final boolean _reflectFlag;
 
     // This flag is true when synchronization code is to be
-    // generated.
+    // generated
     private final boolean _syncFlag;
 
     // This flag is true when reflection is to use a
@@ -314,6 +372,22 @@ public final class SmcOptions
 
     // Used this access keyword for the generated classes.
     private final String _accessLevel;
+
+	// Use this template file for the generated classes.
+	private final String _templateName;
+
+	// Used this suffix for the generated classes.
+	private final String _templateSuffix;
+
+	// Use this directory to search for template files
+	private String _templateDirectory;
+
+	// Generate output in package directory
+	private boolean _packageDir;
+
+	private Map<String,String> _templateParams;
+
+
 } // end of class SmcOptions
 
 //

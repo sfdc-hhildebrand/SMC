@@ -363,9 +363,9 @@ public final class SmcTransition
     }
     
     /** 
-     * @return the transition signature.
+     * @return the transition getSignature.
      */
-    public String signature()
+    public String getSignature()
     {
         StringBuffer retval = new StringBuffer(512);
         String sep;
@@ -385,6 +385,33 @@ public final class SmcTransition
         retval.append(")");
 
         return(retval.toString());
+    }
+
+    
+    public boolean isDefault()
+    {
+    	return this.getName().equals("Default");
+    }
+    
+    public boolean isGuardless()
+    {
+    // Loop through the guards and print each one.
+        Iterator<SmcGuard> git;
+        SmcGuard guard;
+        for (git = _guards.iterator();
+             git.hasNext() == true;
+             )
+        {
+            guard = git.next();
+
+            // Count up the guards with no condition.
+            if (guard.getCondition().length() == 0)
+            {
+	            return true;
+            }
+
+        }
+        return false;
     }
 
 //---------------------------------------------------------------

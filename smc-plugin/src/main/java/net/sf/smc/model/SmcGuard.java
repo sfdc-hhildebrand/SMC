@@ -431,6 +431,60 @@ public final class SmcGuard
         return (retcode);
     } // end of hasActions(List<SmcAction>)
 
+	public boolean getHasActions()
+	{
+		return _hasActions();
+	}
+    
+    public boolean isLoopback()
+    {
+        return (
+            (_transType == TransType.TRANS_SET ||
+             _transType == TransType.TRANS_PUSH) &&
+            _endState.equals(SmcElement.NIL_STATE) == true);
+    }
+
+	public String getEndStateScoped()
+    {
+    	if (_transType != TransType.TRANS_POP &&
+            _endState.length () > 0 &&
+            _endState.equals(SmcElement.NIL_STATE) == false)
+        {
+            return scopeStateName(_endState);
+        }
+        return _endState;
+    }
+
+	public String getPushStateScoped()
+    {
+            return scopeStateName(_pushState);
+    }
+    
+     // Scope the state name. If the state is unscoped, then
+    // return "<mapName>.<stateName>". If the state named
+    // contains the scope string "::", replace that with a ".".
+    protected String scopeStateName(String stateName)
+    {
+        int index;
+        StringWriter retval = new StringWriter();
+
+        index = stateName.indexOf("::");
+        if (index < 0)
+        {
+            retval.write(this.getTransition().getState().getMap().getName());
+            retval.write(".");
+            retval.write(stateName);
+        }
+        else
+        {
+            retval.write(stateName.substring(0, index));
+            retval.write('.');
+            retval.write(stateName.substring(index + 2));
+        }
+
+        return (retval.toString());
+    } // end of scopeStateName(String, String)
+
 //---------------------------------------------------------------
 // Member data.
 //

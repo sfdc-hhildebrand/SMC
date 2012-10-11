@@ -25,15 +25,15 @@
  */
 package com.salesforce.smc;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.ArrayList;
-
 import net.sf.smc.Smc;
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * @author hhildebrand
@@ -179,7 +179,36 @@ public class Plugin extends AbstractMojo {
      */
     private boolean      verbose         = false;
 
-    @Override
+	/***
+	 * template file to use
+	 * @parameter
+	 */
+	private String template= null;
+
+	/**
+	 * Template directory to use
+	 * @parameter
+	 */
+	private String templateDirectory= null;
+
+	/**
+	 * template stuffix to use
+	 * @parameter
+	 */
+	private String templateSuffix = null;
+	/**
+	 * Whether we should generate a package directory
+	 * @parameter
+	 */
+	 private boolean packageDirectory = false;
+
+	/**
+	 * Template Params
+	 * @throws MojoExecutionException
+	 */
+	private Map<String,String> templateParam=null;
+
+	@Override
     public void execute() throws MojoExecutionException {
         if (docDirectory == null) {
             docDirectory = targetDirectory;
@@ -195,6 +224,7 @@ public class Plugin extends AbstractMojo {
 
         project.addCompileSourceRoot(srcDir.getAbsolutePath());
         project.addCompileSourceRoot(targetDir.getAbsolutePath());
+
 
         ArrayList<String> sources = new ArrayList<String>();
         File[] list = srcDir.listFiles(new FilenameFilter() {
@@ -244,7 +274,41 @@ public class Plugin extends AbstractMojo {
             }
         }
 
-        args.add("-d");
+		if (template != null)
+		{
+			args.add("-template");
+			args.add(template);
+		}
+
+		if (templateDirectory != null)
+		{
+			args.add("-tdir");
+			File tdir = new File(project.getBasedir(), templateDirectory);
+			args.add(tdir.getAbsolutePath());
+		}
+
+		if (templateSuffix != null)
+		{
+			args.add("-tsuffix");
+			args.add(templateSuffix);
+		}
+
+		if (packageDirectory)
+		{
+			args.add("-pdir");
+		}
+
+		if (templateParam != null)
+		{
+			for (String key: templateParam.keySet())
+			{
+				args.add("-tparam");
+				args.add(key);
+				args.add(templateParam.get(key));
+			}
+		}
+
+		args.add("-d");
         args.add(targetDir.getAbsolutePath());
         args.add("-" + target);
         args.addAll(sources);
@@ -407,4 +471,24 @@ public class Plugin extends AbstractMojo {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
+
+	public void setTemplate(String template)
+	{
+		this.template = template;
+	}
+
+	public void setTemplateDirectory(String dir)
+	{
+		this.templateDirectory = dir;
+	}
+
+	public void setTemplateSuffix(String templateSuffix)
+	{
+		this.templateSuffix = templateSuffix;
+	}
+
+	public void setPackageDirectory(boolean packageDirectory)
+	{
+		this.packageDirectory = packageDirectory;
+	}
 }
