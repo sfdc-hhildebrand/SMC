@@ -68,7 +68,7 @@
              	log.trace("ENTER transition: ${map.name}.${state.className}.${transition.name}(
 	<#list transition.parameters as param>
              		${param.type} ${param.name}
-		<#if transition.parameters?last != param>
+		<#if param_has_next>
              			,
 		</#if>
 	</#list>
@@ -107,7 +107,7 @@
 			</#if>
 			<#list action.arguments as arg>
 				${arg}
-				<#if action.arguments?last != arg>
+				<#if arg_has_next>
 					,
 				</#if>
             </#list>
@@ -129,7 +129,7 @@
 					log.trace("EXIT transition: ${map.name}.${state.className}.${transition.name}(
 		<#list transition.parameters as param>
 						${param.type} ${param.name}
-			<#if transition.parameters?last != param>
+			<#if param_has_next>
 							,
 			</#if>
 		</#list>

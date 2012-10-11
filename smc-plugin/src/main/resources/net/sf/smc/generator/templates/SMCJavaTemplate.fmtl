@@ -115,7 +115,7 @@ import statemap.*;
                 void ${trans.name}(
     	<#list trans.parameters as param>
     	${param.type} ${param.name}
-    		<#if param != trans.parameters?last>
+    		<#if param_has_next>
     		,
     		</#if>
      	</#list>

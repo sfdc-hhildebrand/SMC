@@ -54,7 +54,7 @@ import statemap.*;
             
         static public enum Transitions {
             <#list transitions as trans>
-                ${trans.name} <#if transitions?last != trans>, </#if>
+                ${trans.name} <#if trans_has_next>, </#if>
             </#list>;
         }
 
@@ -109,7 +109,7 @@ import statemap.*;
                 void ${trans.name}(
     	<#list trans.parameters as param>
     	${param.type} ${param.name}
-    		<#if param != trans.parameters?last>
+    		<#if param_has_nextlast>
     		,
     		</#if>
      	</#list>

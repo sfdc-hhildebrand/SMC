@@ -9,7 +9,7 @@
     </#if>
     <#list action.arguments as arg>
         ${arg}
-        <#if action.arguments?last != arg>
+        <#if arg_has_next>
             ,
         </#if>
     </#list>
